@@ -3,7 +3,7 @@ import { humanizeDate, getDateDiff } from '../utils/dates.js';
 import { DateType } from '../const.js';
 
 
-const createTripPointElement = (point) => {
+const createPointElement = (point) => {
   const {
     basePrice,
     dateFrom,
@@ -73,13 +73,13 @@ const createTripPointElement = (point) => {
 </li>`;
 };
 
-export default class TripPoint extends AbstractView {
+export default class Point extends AbstractView {
   constructor(point) {
     super();
     this._point = point;
   }
 
   getTemplate() {
-    return createTripPointElement(this._point);
+    return createPointElement(this._point);
   }
 }
