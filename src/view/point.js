@@ -2,6 +2,8 @@ import AbstractView from './abstract.js';
 import { humanizeDate, getDateDiff } from '../utils/dates.js';
 import { DateType } from '../const.js';
 
+const FAVORITE_BUTTON_CLASS = 'event__favorite-btn';
+const ACTIVE_BUTTON_CLASS = 'event__favorite-btn--active';
 
 const createPointElement = (point) => {
   const {
@@ -21,7 +23,7 @@ const createPointElement = (point) => {
       : `${humanizeDate(date, DateType.DIGITS)}T${humanizeDate(date, DateType.MIN)}`;
   };
 
-  const isFavoriteClass = () => isFavorite ? 'event__favorite-btn--active' : '';
+  const isFavoriteClass = () => isFavorite ? ACTIVE_BUTTON_CLASS : '';
 
   const renderOffers = () => {
     if (offers.length === 0) {
@@ -77,9 +79,28 @@ export default class Point extends AbstractView {
   constructor(point) {
     super();
     this._point = point;
+    this._favoriteButtonClickHandler = this._favoriteButtonClickHandler.bind(this);
   }
 
   getTemplate() {
     return createPointElement(this._point);
+  }
+
+  setFavoriteButtonClick(callback) {
+    this._callback.favoriteButtonClick = callback;
+    this.getElement()
+      .querySelector(`.${FAVORITE_BUTTON_CLASS}`)
+      .addEventListener('click', this._favoriteButtonClickHandler);
+  }
+
+  _favoriteButtonClickHandler(evt) {
+    evt.preventDefault();
+    const target = evt.target;
+    const button = target.closest(`.${FAVORITE_BUTTON_CLASS}`);
+    if (!button) {
+      return;
+    }
+
+    this._callback.favoriteButtonClick(button.classList.contains(ACTIVE_BUTTON_CLASS));
   }
 }

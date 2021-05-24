@@ -7,8 +7,11 @@ const MINUTES_IN_DAY = 1440;
 
 const formatTwoDigits = (number) => number < 10 ? `0${number}` : number;
 
-export const getDateDiff = (dateFrom, dateTo) => {
+export const getDateDiff = (dateFrom, dateTo, diffOnly = false) => {
   const diff =  dayjs(dateTo).diff(dayjs(dateFrom), 'minute', true);
+  if (diffOnly) {
+    return Math.round(diff);
+  }
   const days = formatTwoDigits(Math.trunc(diff / 1440));
   const hours = formatTwoDigits(Math.trunc(diff / 60));
   const minutes = formatTwoDigits(Math.round(diff % 60));
@@ -50,6 +53,20 @@ export const humanizeDuration = (duration, {asObject = false} = {}) => {
 export const isDateInRange = (currentDate, dateFrom) => {
   dayjs.extend(isSameOrBefore);
   return dayjs(dateFrom).isSameOrBefore(currentDate);
+};
+
+// Сортируем по дате
+export const sortByDate = (pointA, pointB) => {
+  const datePointA = pointA.dateFrom;
+  const datePointB = pointB.dateFrom;
+  return dayjs(datePointB).diff(datePointA);
+};
+
+// Сортируем по продолжительности
+export const sortByTime = (pointA, pointB) => {
+  const durationPointA = getDateDiff(pointA.dateFrom, pointA.dateTo, true);
+  const durationPointB = getDateDiff(pointB.dateFrom, pointB.dateTo, true);
+  return durationPointB - durationPointA;
 };
 
 // Получаем дату конца периода

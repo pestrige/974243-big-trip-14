@@ -5,6 +5,7 @@ export default class PointFullPresenter {
   constructor(containerComponent) {
     this._container = containerComponent.getElement();
     this._component = null;
+    this._handleEscKeyDown = this._handleEscKeyDown.bind(this);
   }
 
   init(point, pointPresenter) {
@@ -13,7 +14,7 @@ export default class PointFullPresenter {
     const oldComponent = this._component;
 
     this._component = new PointFullView(this._point);
-    //this._component.setControlButtonsClick(this._handleControlButtons);
+    document.addEventListener('keydown', this._handleEscKeyDown);
 
     if (oldComponent === null) {
       replace(this._pointPresenter.getComponent(), this._component);
@@ -33,6 +34,14 @@ export default class PointFullPresenter {
   }
 
   destroy() {
+    replace(this._component, this._pointPresenter.getComponent());
     remove(this._component);
+    document.removeEventListener('keydown', this._handleEscKeyDown);
+  }
+
+  _handleEscKeyDown(evt) {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      this.destroy();
+    }
   }
 }

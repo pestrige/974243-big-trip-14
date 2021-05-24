@@ -15,15 +15,15 @@ export default class Points extends AbstractModel {
     return this._points;
   }
 
-  // updatePoint(updateType, update) {
-  //   this._films = [...this._films];
-  //   const updatedFilm = update.id ? this._adaptFilmToClient(update) : update;
-  //   const index = this._films.findIndex((film) => film.filmInfo.id === updatedFilm.filmInfo.id);
-  //   if (index !== -1) {
-  //     this._films.splice(index, 1, updatedFilm);
-  //   }
-  //   if (updateType) {
-  //     this._notify(updateType, updatedFilm);
-  //   }
-  // }
+  updatePoint(updateType, update) {
+    this._points = [...this._points];
+    //const updatedPoint = update.id ? this._adaptPointToClient(update) : update;
+    const index = this._points.findIndex((point) => point.id === update.id);
+    if (index !== -1) {
+      this._points.splice(index, 1, update);
+    }
+    if (updateType) {
+      this._notify(updateType, update);
+    }
+  }
 }

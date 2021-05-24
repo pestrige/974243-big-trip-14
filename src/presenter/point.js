@@ -1,24 +1,20 @@
-//import AbstractSmartPresenter from './abstract-smart.js';
 import PointView from '../view/point.js';
 import { render, remove, replace } from '../utils/render.js';
+import { UpdateType } from '../const.js';
 
 export default class PointPresenter {
-  constructor(container) {
-    //super();
+  constructor(container, handlePointChange) {
     this._container = container;
     this._component = null;
-    // методы _changeData и _handleControlButtons
-    // наследуются от AbstractSmartPresenter
-    //this._changeData = handleFilmChange;
-    //this._handleControlButtons = this._handleControlButtons.bind(this);
+    this._changeData = handlePointChange;
+    this._handleFavoriteButtonClick = this._handleFavoriteButtonClick.bind(this);
   }
 
   init(point) {
     this._point = point;
     const oldComponent = this._component;
-
     this._component = new PointView(this._point);
-    //this._component.setControlButtonsClick(this._handleControlButtons);
+    this._component.setFavoriteButtonClick(this._handleFavoriteButtonClick);
 
     if (oldComponent === null) {
       render(this._container, this._component);
@@ -39,5 +35,9 @@ export default class PointPresenter {
 
   destroy() {
     remove(this._component);
+  }
+
+  _handleFavoriteButtonClick(isFavoriteFlag) {
+    this._changeData(UpdateType.PATCH, {...this._point, isFavorite: !isFavoriteFlag});
   }
 }

@@ -17,4 +17,13 @@ export const DateType = {
 };
 export const UpdateType = {
   INIT: 'init',
+  PATCH: 'patch',
+  MINOR: 'minor',
+  MAJOR: 'major',
+};
+
+export const SortType = {
+  DAY: 'sort-day',
+  TIME: 'sort-time',
+  PRICE: 'sort-price',
 };
