@@ -806,7 +806,7 @@ main {
     .event__input--destination::-webkit-calendar-picker-indicator {
       display: none; }
   .event__input--time {
-    width: 130px;
+    width: 150px;
     text-align: center; }
   .event__input--price {
     width: 66px; }
@@ -955,8 +955,10 @@ main {
   overflow-x: scroll; }
 
 .event__photos-tape {
+  padding: 0 20px;
   display: -ms-flexbox;
   display: flex;
+  flex-wrap: wrap;
   -ms-flex-align: start;
       align-items: flex-start; }
 
@@ -964,11 +966,8 @@ main {
   display: block;
   height: 152px;
   width: auto;
+  margin-bottom: 5px;
   border-radius: 4px; }
-  .event__photo:first-child {
-    padding-left: 20px; }
-  .event__photo:last-child {
-    padding-right: 20px; }
   .event__photo:not(:last-child) {
     margin-right: 5px; }
 
