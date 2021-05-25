@@ -3,43 +3,48 @@ import PointPresenter from './point.js';
 import PointFullPresenter from './point-full.js';
 
 import MenuView from '../view/menu.js';
-import FiltersView from '../view/filters.js';
 import LoadingView from '../view/loading.js';
 import NoPointsView from '../view/no-points.js';
 import SortView from '../view/sort.js';
 import PointsContainerView from '../view/pointsContainer';
 import { render, remove } from '../utils/render.js';
 import { sortByPrice } from '../utils/common.js';
-import { sortByDate, sortByTime } from '../utils/dates.js';
+import { sortByDate, sortByTime, filter } from '../utils/dates.js';
 import { UpdateType, SortType } from '../const';
 
 export default class BoardPresenter {
-  constructor(eventsContainer, headerContainer, pointsModel, destinationsModel, offersModel) {
+  constructor(
+    eventsContainer,
+    headerContainer,
+    pointsModel,
+    destinationsModel,
+    offersModel,
+    filtersModel,
+  ) {
     //containers
     this._eventsContainer = eventsContainer;
     this._headerContainer = headerContainer;
     this._menuContainer = this._headerContainer.querySelector('.trip-controls__navigation');
-    this._filterContainer = this._headerContainer.querySelector('.trip-controls__filters');
 
     //models
     this._pointsModel = pointsModel;
     this._destinationsModel = destinationsModel;
     this._offersModel = offersModel;
+    this._filtersModel = filtersModel;
 
     // presenters
     this._infoPresenter = null;
     this._pointFullPresenter = null;
     this._pointPresentersList = new Map();
 
-    // menu && filters components
+    // dymanic components
     this._menuComponent = new MenuView();
-    this._filtersComponent = new FiltersView();
+    this._sortComponent = null;
 
-    // components
+    // static components
     this._loadingComponent = new LoadingView();
     this._noPointsComponent = new NoPointsView();
     this._pointsContainerComponent = new PointsContainerView();
-    this._sortComponent = null;
 
     // options
     this._isLoading = true;
@@ -56,22 +61,25 @@ export default class BoardPresenter {
   init() {
     this._render();
     this._pointsModel.addObserver(this._handleModelEvent);
+    this._filtersModel.addObserver(this._handleModelEvent);
   }
 
-  _getPoints() {
+  _getPoints({totalCount = false} = {}) {
     const points = this._pointsModel.getItems().slice();
+    const filterType = this._filtersModel.getFilter();
+    const filteredPoints = filter[filterType](points);
     switch (this._currentSortType) {
       case SortType.DATE:
-        points.sort(sortByDate);
+        filteredPoints.sort(sortByDate);
         break;
       case SortType.TIME:
-        points.sort(sortByTime);
+        filteredPoints.sort(sortByTime);
         break;
       case SortType.PRICE:
-        points.sort(sortByPrice);
+        filteredPoints.sort(sortByPrice);
         break;
     }
-    return points;
+    return totalCount ? points : filteredPoints;
   }
 
   // методы рендера
@@ -79,7 +87,6 @@ export default class BoardPresenter {
     const points = this._getPoints();
     this._renderInfo(this._headerContainer, this._pointsModel.getItems().slice());
     this._renderMenu();
-    this._renderFilters();
     this._renderSort();
     if (this._isLoading) {
       render(this._eventsContainer, this._loadingComponent);
@@ -101,10 +108,6 @@ export default class BoardPresenter {
 
   _renderMenu() {
     render(this._menuContainer, this._menuComponent);
-  }
-
-  _renderFilters() {
-    render(this._filterContainer, this._filtersComponent);
   }
 
   _renderSort() {
@@ -136,13 +139,25 @@ export default class BoardPresenter {
   }
 
   // методы очистки и обновления
-  _clear() {
+  _clear({resetSort = false} ={}) {
+    if (resetSort) {
+      this._currentSortType = SortType.DAY;
+    }
+    if (this._pointFullPresenter) {
+      this._clearPointFullPresenter();
+    }
+
     this._pointPresentersList
       .forEach((point) => point.destroy());
     this._pointPresentersList.clear();
     remove(this._sortComponent);
     this._infoPresenter.destroy();
     this._infoPresenter = null;
+  }
+
+  _clearPointFullPresenter() {
+    this._pointFullPresenter.destroy();
+    this._pointFullPresenter = null;
   }
 
   _rerenderPoint(updatedPoint) {
@@ -166,17 +181,21 @@ export default class BoardPresenter {
       case UpdateType.PATCH:
         this._rerenderPoint(data);
         break;
+      case UpdateType.MAJOR:
+        this._clear({resetSort: true});
+        this._render(data);
+        break;
     }
   }
 
+  // обработчик открытия и закрытия карточки маршрута
   _handlePointsListClick(clickedPointID) {
     const pointPresenter = this._pointPresentersList.get(clickedPointID);
     const point = {...pointPresenter.getPoint()};
 
     if (this._pointFullPresenter) {
       const openedPointID = this._pointFullPresenter.getPoint().id;
-      this._pointFullPresenter.destroy();
-      this._pointFullPresenter = null;
+      this._clearPointFullPresenter();
       if (openedPointID === clickedPointID) {
         return;
       }

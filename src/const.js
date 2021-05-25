@@ -28,3 +28,9 @@ export const SortType = {
   TIME: 'sort-time',
   PRICE: 'sort-price',
 };
+
+export const FilterType = {
+  ALL: 'everything',
+  FUTURE: 'future',
+  PAST: 'past',
+};

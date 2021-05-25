@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import { DateType } from '../const.js';
+import { DateType, FilterType } from '../const.js';
 import flatpickr from 'flatpickr';
 import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
@@ -69,6 +69,29 @@ export const sortByTime = (pointA, pointB) => {
   const durationPointA = getDateDiff(pointA.dateFrom, pointA.dateTo, true);
   const durationPointB = getDateDiff(pointB.dateFrom, pointB.dateTo, true);
   return durationPointB - durationPointA;
+};
+
+// Получаем количество маршрутов по ключу
+export const getFilteredPointsCounts = (points) => {
+  dayjs.extend(isSameOrBefore);
+  const filtersCount = {
+    future: 0,
+    past: 0,
+  };
+
+  points.forEach((point) => {
+    dayjs().isSameOrBefore(point.dateFrom)
+      ? filtersCount.future ++
+      : filtersCount.past ++;
+  });
+  return {everything: points.length, ...filtersCount};
+};
+
+// Список отфиотрованных массивов точек маршрутов
+export const filter = {
+  [FilterType.ALL]: (points) => points.slice(),
+  [FilterType.FUTURE]: (points) => points.filter(({dateFrom}) => dayjs().isSameOrBefore(dateFrom)),
+  [FilterType.PAST]: (points) => points.filter(({dateFrom}) => !dayjs().isSameOrBefore(dateFrom)),
 };
 
 // Календарь
