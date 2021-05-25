@@ -3235,7 +3235,7 @@ module.exports = function (list, options) {
 /*!**********************!*\
   !*** ./src/const.js ***!
   \**********************/
-/*! exports provided: RenderPosition, ApiUrl, DataType, DateType, UpdateType, SortType */
+/*! exports provided: RenderPosition, ApiUrl, DataType, DateType, UpdateType, SortType, FilterType */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3246,6 +3246,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "DateType", function() { return DateType; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "UpdateType", function() { return UpdateType; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SortType", function() { return SortType; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FilterType", function() { return FilterType; });
 const RenderPosition = {
   START: 'afterbegin',
   END: 'beforeend',
@@ -3277,6 +3278,12 @@ const SortType = {
   PRICE: 'sort-price',
 };
 
+const FilterType = {
+  ALL: 'everything',
+  FUTURE: 'future',
+  PAST: 'past',
+};
+
 
 /***/ }),
 
@@ -3292,8 +3299,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _model_points_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./model/points.js */ "./src/model/points.js");
 /* harmony import */ var _model_destinations_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./model/destinations.js */ "./src/model/destinations.js");
 /* harmony import */ var _model_offers_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./model/offers.js */ "./src/model/offers.js");
-/* harmony import */ var _presenter_board_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./presenter/board.js */ "./src/presenter/board.js");
-/* harmony import */ var _const_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./const.js */ "./src/const.js");
+/* harmony import */ var _model_filters_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./model/filters.js */ "./src/model/filters.js");
+/* harmony import */ var _presenter_board_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./presenter/board.js */ "./src/presenter/board.js");
+/* harmony import */ var _presenter_filters_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./presenter/filters.js */ "./src/presenter/filters.js");
+/* harmony import */ var _const_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./const.js */ "./src/const.js");
+
+
+
 
 
 
@@ -3305,23 +3317,24 @@ __webpack_require__.r(__webpack_exports__);
 const pointsModel = new _model_points_js__WEBPACK_IMPORTED_MODULE_0__["default"]();
 const destinationsModel = new _model_destinations_js__WEBPACK_IMPORTED_MODULE_1__["default"]();
 const offersModel = new _model_offers_js__WEBPACK_IMPORTED_MODULE_2__["default"]();
+const filtersModel = new _model_filters_js__WEBPACK_IMPORTED_MODULE_3__["default"]();
 
 // Получаем точки маршрута
-pointsModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_4__["ApiUrl"].POINTS, _const_js__WEBPACK_IMPORTED_MODULE_4__["DataType"].POINTS)
+pointsModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_6__["ApiUrl"].POINTS, _const_js__WEBPACK_IMPORTED_MODULE_6__["DataType"].POINTS)
   .then((data) => {
-    pointsModel.setItems(_const_js__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].INIT, data);
+    pointsModel.setItems(_const_js__WEBPACK_IMPORTED_MODULE_6__["UpdateType"].INIT, data);
   })
-  .catch(() => pointsModel.setItems(_const_js__WEBPACK_IMPORTED_MODULE_4__["UpdateType"].INIT, []));
+  .catch(() => pointsModel.setItems(_const_js__WEBPACK_IMPORTED_MODULE_6__["UpdateType"].INIT, []));
 
 // Получаем направления
-destinationsModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_4__["ApiUrl"].DESTINATIONS, _const_js__WEBPACK_IMPORTED_MODULE_4__["DataType"].OTHER)
+destinationsModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_6__["ApiUrl"].DESTINATIONS, _const_js__WEBPACK_IMPORTED_MODULE_6__["DataType"].OTHER)
   .then((destinations) => {
     destinationsModel.setItems(destinations);
   })
   .catch(() => destinationsModel.setItems([]));
 
 // Получаем офферы
-offersModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_4__["ApiUrl"].OFFERS, _const_js__WEBPACK_IMPORTED_MODULE_4__["DataType"].OTHER)
+offersModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_6__["ApiUrl"].OFFERS, _const_js__WEBPACK_IMPORTED_MODULE_6__["DataType"].OTHER)
   .then((destinations) => {
     offersModel.setItems(destinations);
   })
@@ -3329,14 +3342,18 @@ offersModel.getData(_const_js__WEBPACK_IMPORTED_MODULE_4__["ApiUrl"].OFFERS, _co
 
 const headerContainer = document.querySelector('.trip-main');
 const eventsContainer = document.querySelector('.trip-events');
+const filtersContainer = document.querySelector('.trip-controls__filters');
 
-const boardPresenter = new _presenter_board_js__WEBPACK_IMPORTED_MODULE_3__["default"](
+const filtersPresenter = new _presenter_filters_js__WEBPACK_IMPORTED_MODULE_5__["default"](filtersContainer, filtersModel, pointsModel);
+const boardPresenter = new _presenter_board_js__WEBPACK_IMPORTED_MODULE_4__["default"](
   eventsContainer,
   headerContainer,
   pointsModel,
   destinationsModel,
   offersModel,
+  filtersModel,
 );
+filtersPresenter.init();
 boardPresenter.init();
 
 
@@ -3658,6 +3675,40 @@ class Destinations extends _abstract_model_js__WEBPACK_IMPORTED_MODULE_0__["defa
 
 /***/ }),
 
+/***/ "./src/model/filters.js":
+/*!******************************!*\
+  !*** ./src/model/filters.js ***!
+  \******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Filters; });
+/* harmony import */ var _abstract_model_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstract-model.js */ "./src/model/abstract-model.js");
+/* harmony import */ var _const_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../const.js */ "./src/const.js");
+
+
+
+class Filters extends _abstract_model_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
+  constructor() {
+    super();
+    this._activeFilter = _const_js__WEBPACK_IMPORTED_MODULE_1__["FilterType"].ALL;
+  }
+
+  setFilter(updateType, filterType) {
+    this._activeFilter = filterType;
+    this._notify(updateType, this._activeFilter);
+  }
+
+  getFilter() {
+    return this._activeFilter;
+  }
+}
+
+
+/***/ }),
+
 /***/ "./src/model/offers.js":
 /*!*****************************!*\
   !*** ./src/model/offers.js ***!
@@ -3748,16 +3799,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _point_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./point.js */ "./src/presenter/point.js");
 /* harmony import */ var _point_full_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./point-full.js */ "./src/presenter/point-full.js");
 /* harmony import */ var _view_menu_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../view/menu.js */ "./src/view/menu.js");
-/* harmony import */ var _view_filters_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../view/filters.js */ "./src/view/filters.js");
-/* harmony import */ var _view_loading_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../view/loading.js */ "./src/view/loading.js");
-/* harmony import */ var _view_no_points_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../view/no-points.js */ "./src/view/no-points.js");
-/* harmony import */ var _view_sort_js__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../view/sort.js */ "./src/view/sort.js");
-/* harmony import */ var _view_pointsContainer__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../view/pointsContainer */ "./src/view/pointsContainer.js");
-/* harmony import */ var _utils_render_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../utils/render.js */ "./src/utils/render.js");
-/* harmony import */ var _utils_common_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../utils/common.js */ "./src/utils/common.js");
-/* harmony import */ var _utils_dates_js__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils/dates.js */ "./src/utils/dates.js");
-/* harmony import */ var _const__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../const */ "./src/const.js");
-
+/* harmony import */ var _view_loading_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../view/loading.js */ "./src/view/loading.js");
+/* harmony import */ var _view_no_points_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../view/no-points.js */ "./src/view/no-points.js");
+/* harmony import */ var _view_sort_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../view/sort.js */ "./src/view/sort.js");
+/* harmony import */ var _view_pointsContainer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../view/pointsContainer */ "./src/view/pointsContainer.js");
+/* harmony import */ var _utils_render_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../utils/render.js */ "./src/utils/render.js");
+/* harmony import */ var _utils_common_js__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../utils/common.js */ "./src/utils/common.js");
+/* harmony import */ var _utils_dates_js__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ../utils/dates.js */ "./src/utils/dates.js");
+/* harmony import */ var _const__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../const */ "./src/const.js");
 
 
 
@@ -3773,36 +3822,42 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class BoardPresenter {
-  constructor(eventsContainer, headerContainer, pointsModel, destinationsModel, offersModel) {
+  constructor(
+    eventsContainer,
+    headerContainer,
+    pointsModel,
+    destinationsModel,
+    offersModel,
+    filtersModel,
+  ) {
     //containers
     this._eventsContainer = eventsContainer;
     this._headerContainer = headerContainer;
     this._menuContainer = this._headerContainer.querySelector('.trip-controls__navigation');
-    this._filterContainer = this._headerContainer.querySelector('.trip-controls__filters');
 
     //models
     this._pointsModel = pointsModel;
     this._destinationsModel = destinationsModel;
     this._offersModel = offersModel;
+    this._filtersModel = filtersModel;
 
     // presenters
     this._infoPresenter = null;
     this._pointFullPresenter = null;
     this._pointPresentersList = new Map();
 
-    // menu && filters components
+    // dymanic components
     this._menuComponent = new _view_menu_js__WEBPACK_IMPORTED_MODULE_3__["default"]();
-    this._filtersComponent = new _view_filters_js__WEBPACK_IMPORTED_MODULE_4__["default"]();
-
-    // components
-    this._loadingComponent = new _view_loading_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
-    this._noPointsComponent = new _view_no_points_js__WEBPACK_IMPORTED_MODULE_6__["default"]();
-    this._pointsContainerComponent = new _view_pointsContainer__WEBPACK_IMPORTED_MODULE_8__["default"]();
     this._sortComponent = null;
+
+    // static components
+    this._loadingComponent = new _view_loading_js__WEBPACK_IMPORTED_MODULE_4__["default"]();
+    this._noPointsComponent = new _view_no_points_js__WEBPACK_IMPORTED_MODULE_5__["default"]();
+    this._pointsContainerComponent = new _view_pointsContainer__WEBPACK_IMPORTED_MODULE_7__["default"]();
 
     // options
     this._isLoading = true;
-    this._currentSortType = _const__WEBPACK_IMPORTED_MODULE_12__["SortType"].DAY;
+    this._currentSortType = _const__WEBPACK_IMPORTED_MODULE_11__["SortType"].DAY;
 
     // handlers
     this._handleViewAction = this._handleViewAction.bind(this);
@@ -3815,22 +3870,25 @@ class BoardPresenter {
   init() {
     this._render();
     this._pointsModel.addObserver(this._handleModelEvent);
+    this._filtersModel.addObserver(this._handleModelEvent);
   }
 
-  _getPoints() {
+  _getPoints({totalCount = false} = {}) {
     const points = this._pointsModel.getItems().slice();
+    const filterType = this._filtersModel.getFilter();
+    const filteredPoints = _utils_dates_js__WEBPACK_IMPORTED_MODULE_10__["filter"][filterType](points);
     switch (this._currentSortType) {
-      case _const__WEBPACK_IMPORTED_MODULE_12__["SortType"].DATE:
-        points.sort(_utils_dates_js__WEBPACK_IMPORTED_MODULE_11__["sortByDate"]);
+      case _const__WEBPACK_IMPORTED_MODULE_11__["SortType"].DATE:
+        filteredPoints.sort(_utils_dates_js__WEBPACK_IMPORTED_MODULE_10__["sortByDate"]);
         break;
-      case _const__WEBPACK_IMPORTED_MODULE_12__["SortType"].TIME:
-        points.sort(_utils_dates_js__WEBPACK_IMPORTED_MODULE_11__["sortByTime"]);
+      case _const__WEBPACK_IMPORTED_MODULE_11__["SortType"].TIME:
+        filteredPoints.sort(_utils_dates_js__WEBPACK_IMPORTED_MODULE_10__["sortByTime"]);
         break;
-      case _const__WEBPACK_IMPORTED_MODULE_12__["SortType"].PRICE:
-        points.sort(_utils_common_js__WEBPACK_IMPORTED_MODULE_10__["sortByPrice"]);
+      case _const__WEBPACK_IMPORTED_MODULE_11__["SortType"].PRICE:
+        filteredPoints.sort(_utils_common_js__WEBPACK_IMPORTED_MODULE_9__["sortByPrice"]);
         break;
     }
-    return points;
+    return totalCount ? points : filteredPoints;
   }
 
   // методы рендера
@@ -3838,14 +3896,13 @@ class BoardPresenter {
     const points = this._getPoints();
     this._renderInfo(this._headerContainer, this._pointsModel.getItems().slice());
     this._renderMenu();
-    this._renderFilters();
     this._renderSort();
     if (this._isLoading) {
-      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["render"])(this._eventsContainer, this._loadingComponent);
+      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["render"])(this._eventsContainer, this._loadingComponent);
       return;
     }
     if (points.length < 0) {
-      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["render"])(this._eventsContainer, this._noPointsComponent);
+      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["render"])(this._eventsContainer, this._noPointsComponent);
       return;
     }
 
@@ -3859,25 +3916,21 @@ class BoardPresenter {
   }
 
   _renderMenu() {
-    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["render"])(this._menuContainer, this._menuComponent);
-  }
-
-  _renderFilters() {
-    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["render"])(this._filterContainer, this._filtersComponent);
+    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["render"])(this._menuContainer, this._menuComponent);
   }
 
   _renderSort() {
     if (this._sortComponent) {
-      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["remove"])(this._sortComponent);
+      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["remove"])(this._sortComponent);
       this._sortComponent = null;
     }
-    this._sortComponent = new _view_sort_js__WEBPACK_IMPORTED_MODULE_7__["default"](this._currentSortType);
+    this._sortComponent = new _view_sort_js__WEBPACK_IMPORTED_MODULE_6__["default"](this._currentSortType);
     this._sortComponent.setSortButtonsClickHandler(this._handleSortButtonsClick);
-    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["render"])(this._eventsContainer, this._sortComponent);
+    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["render"])(this._eventsContainer, this._sortComponent);
   }
 
   _renderPointsContainer() {
-    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["render"])(this._eventsContainer, this._pointsContainerComponent);
+    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["render"])(this._eventsContainer, this._pointsContainerComponent);
     this._pointsContainerComponent.setPointClickHandler(this._handlePointsListClick);
   }
 
@@ -3895,13 +3948,25 @@ class BoardPresenter {
   }
 
   // методы очистки и обновления
-  _clear() {
+  _clear({resetSort = false} ={}) {
+    if (resetSort) {
+      this._currentSortType = _const__WEBPACK_IMPORTED_MODULE_11__["SortType"].DAY;
+    }
+    if (this._pointFullPresenter) {
+      this._clearPointFullPresenter();
+    }
+
     this._pointPresentersList
       .forEach((point) => point.destroy());
     this._pointPresentersList.clear();
-    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["remove"])(this._sortComponent);
+    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["remove"])(this._sortComponent);
     this._infoPresenter.destroy();
     this._infoPresenter = null;
+  }
+
+  _clearPointFullPresenter() {
+    this._pointFullPresenter.destroy();
+    this._pointFullPresenter = null;
   }
 
   _rerenderPoint(updatedPoint) {
@@ -3917,25 +3982,29 @@ class BoardPresenter {
 
   _handleModelEvent(updateType, data) {
     switch (updateType) {
-      case _const__WEBPACK_IMPORTED_MODULE_12__["UpdateType"].INIT:
+      case _const__WEBPACK_IMPORTED_MODULE_11__["UpdateType"].INIT:
         this._isLoading = false,
-        Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_9__["remove"])(this._loadingComponent);
+        Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_8__["remove"])(this._loadingComponent);
         this._render(data);
         break;
-      case _const__WEBPACK_IMPORTED_MODULE_12__["UpdateType"].PATCH:
+      case _const__WEBPACK_IMPORTED_MODULE_11__["UpdateType"].PATCH:
         this._rerenderPoint(data);
+        break;
+      case _const__WEBPACK_IMPORTED_MODULE_11__["UpdateType"].MAJOR:
+        this._clear({resetSort: true});
+        this._render(data);
         break;
     }
   }
 
+  // обработчик открытия и закрытия карточки маршрута
   _handlePointsListClick(clickedPointID) {
     const pointPresenter = this._pointPresentersList.get(clickedPointID);
     const point = {...pointPresenter.getPoint()};
 
     if (this._pointFullPresenter) {
       const openedPointID = this._pointFullPresenter.getPoint().id;
-      this._pointFullPresenter.destroy();
-      this._pointFullPresenter = null;
+      this._clearPointFullPresenter();
       if (openedPointID === clickedPointID) {
         return;
       }
@@ -3958,6 +4027,68 @@ class BoardPresenter {
     this._currentSortType = sortType;
     this._clear();
     this._render();
+  }
+}
+
+
+/***/ }),
+
+/***/ "./src/presenter/filters.js":
+/*!**********************************!*\
+  !*** ./src/presenter/filters.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MenuPresenter; });
+/* harmony import */ var _view_filters_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../view/filters.js */ "./src/view/filters.js");
+/* harmony import */ var _utils_dates_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dates.js */ "./src/utils/dates.js");
+/* harmony import */ var _utils_render_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../utils/render.js */ "./src/utils/render.js");
+/* harmony import */ var _const_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../const.js */ "./src/const.js");
+
+
+
+
+
+class MenuPresenter {
+  constructor(container, filtersModel, pointsModel) {
+    this._container = container;
+    this._filtersModel = filtersModel;
+    this._pointsModel = pointsModel;
+
+    this._component = null;
+
+    this._handleTypeChange = this._handleTypeChange.bind(this);
+    this._handleModelEvent = this._handleModelEvent.bind(this);
+    this._filtersModel.addObserver(this._handleModelEvent);
+    this._pointsModel.addObserver(this._handleModelEvent);
+  }
+
+  _getFiltersCount() {
+    const points = this._pointsModel.getItems();
+    return Object(_utils_dates_js__WEBPACK_IMPORTED_MODULE_1__["getFilteredPointsCounts"])(points);
+  }
+
+  init() {
+    const oldComponent = this._component;
+    this._component = new _view_filters_js__WEBPACK_IMPORTED_MODULE_0__["default"](this._getFiltersCount(), this._filtersModel.getFilter());
+    this._component.setTypeChangeHandler(this._handleTypeChange);
+    if (oldComponent === null) {
+      Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_2__["render"])(this._container, this._component);
+      return;
+    }
+    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_2__["replace"])(oldComponent, this._component);
+    Object(_utils_render_js__WEBPACK_IMPORTED_MODULE_2__["remove"])(oldComponent);
+  }
+
+  _handleTypeChange(filterType) {
+    this._filtersModel.setFilter(_const_js__WEBPACK_IMPORTED_MODULE_3__["UpdateType"].MAJOR, filterType);
+  }
+
+  _handleModelEvent() {
+    this.init();
   }
 }
 
@@ -4182,7 +4313,7 @@ const sortByPrice = (pointA, pointB) => pointB.basePrice - pointA.basePrice;
 /*!****************************!*\
   !*** ./src/utils/dates.js ***!
   \****************************/
-/*! exports provided: getDateDiff, humanizeDate, humanizeDuration, isDateInRange, sortByDate, sortByTime, createDatePicker */
+/*! exports provided: getDateDiff, humanizeDate, humanizeDuration, isDateInRange, sortByDate, sortByTime, getFilteredPointsCounts, filter, createDatePicker */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4193,6 +4324,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isDateInRange", function() { return isDateInRange; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sortByDate", function() { return sortByDate; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "sortByTime", function() { return sortByTime; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getFilteredPointsCounts", function() { return getFilteredPointsCounts; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "filter", function() { return filter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createDatePicker", function() { return createDatePicker; });
 /* harmony import */ var dayjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! dayjs */ "./node_modules/dayjs/dayjs.min.js");
 /* harmony import */ var dayjs__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(dayjs__WEBPACK_IMPORTED_MODULE_0__);
@@ -4273,6 +4406,29 @@ const sortByTime = (pointA, pointB) => {
   const durationPointA = getDateDiff(pointA.dateFrom, pointA.dateTo, true);
   const durationPointB = getDateDiff(pointB.dateFrom, pointB.dateTo, true);
   return durationPointB - durationPointA;
+};
+
+// Получаем количество маршрутов по ключу
+const getFilteredPointsCounts = (points) => {
+  dayjs__WEBPACK_IMPORTED_MODULE_0___default.a.extend(dayjs_plugin_isSameOrBefore__WEBPACK_IMPORTED_MODULE_1___default.a);
+  const filtersCount = {
+    future: 0,
+    past: 0,
+  };
+
+  points.forEach((point) => {
+    dayjs__WEBPACK_IMPORTED_MODULE_0___default()().isSameOrBefore(point.dateFrom)
+      ? filtersCount.future ++
+      : filtersCount.past ++;
+  });
+  return {everything: points.length, ...filtersCount};
+};
+
+// Список отфиотрованных массивов точек маршрутов
+const filter = {
+  [_const_js__WEBPACK_IMPORTED_MODULE_2__["FilterType"].ALL]: (points) => points.slice(),
+  [_const_js__WEBPACK_IMPORTED_MODULE_2__["FilterType"].FUTURE]: (points) => points.filter(({dateFrom}) => dayjs__WEBPACK_IMPORTED_MODULE_0___default()().isSameOrBefore(dateFrom)),
+  [_const_js__WEBPACK_IMPORTED_MODULE_2__["FilterType"].PAST]: (points) => points.filter(({dateFrom}) => !dayjs__WEBPACK_IMPORTED_MODULE_0___default()().isSameOrBefore(dateFrom)),
 };
 
 // Календарь
@@ -4482,35 +4638,57 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _abstract_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./abstract.js */ "./src/view/abstract.js");
 
 
-const createFiltersElement = () => {
+const FILTER_CLASS = 'trip-filters__filter-input';
+
+const createFiltersElement = (filtersCount, activeFilter) => {
+  const renderFilters = () => {
+    return Object.entries(filtersCount).reduce((acc, item) => {
+      return acc + `<div class="trip-filters__filter">
+  <input id="filter-${item[0]}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${item[0]}" ${activeFilter === item[0] ? 'checked' : ''} ${item[1] ? '' : 'disabled'}>
+  <label class="trip-filters__filter-label" for="filter-${item[0]}">${item[0]} ${item[1]}</label>
+</div>
+`;
+    }, '');
+  };
+
   return `<form class="trip-filters" action="#" method="get">
-  <div class="trip-filters__filter">
-    <input id="filter-everything" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="everything" checked>
-    <label class="trip-filters__filter-label" for="filter-everything">Everything</label>
-  </div>
-
-  <div class="trip-filters__filter">
-    <input id="filter-future" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="future">
-    <label class="trip-filters__filter-label" for="filter-future">Future</label>
-  </div>
-
-  <div class="trip-filters__filter">
-    <input id="filter-past" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="past">
-    <label class="trip-filters__filter-label" for="filter-past">Past</label>
-  </div>
+  ${renderFilters()}
 
   <button class="visually-hidden" type="submit">Accept filter</button>
 </form>`;
 };
 
 class Filters extends _abstract_js__WEBPACK_IMPORTED_MODULE_0__["default"] {
-  constructor() {
+  constructor(count, activeFilter) {
     super();
+    this._count = count;
+    this._activeFilter = activeFilter;
+    this._typeChangeHandler = this._typeChangeHandler.bind(this);
   }
 
   getTemplate() {
-    return createFiltersElement();
+    return createFiltersElement(this._count, this._activeFilter);
   }
+
+  setTypeChangeHandler(callback) {
+    this._callback.filterClick = callback;
+    this.getElement().addEventListener('click', this._typeChangeHandler);
+  }
+
+  _typeChangeHandler(evt) {
+    const target = evt.target;
+    const isTargetCorrect = target.classList.contains(FILTER_CLASS);
+    if (!isTargetCorrect) {
+      return;
+    }
+    evt.preventDefault();
+    if (this._activeFilter === target.value) {
+      return;
+    }
+
+    this._callback.filterClick(target.value);
+  }
+
 }
 
 
