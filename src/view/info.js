@@ -2,18 +2,13 @@ import AbstractView from './abstract.js';
 import { humanizeDate } from '../utils/dates.js';
 import { DateType } from '../const.js';
 
+const MAX_SHOWN_DESTINATIONS = 3;
+
 const createInfoElement = (points) => {
-  // Создаем список точек маршрута
-  // без следующих друг за другом повторений
   const createRoute = () => {
-    const destins = [];
-    for (let i = 1; i < points.length; i++) {
-      if (points[i].destination.name !== points[i - 1].destination.name) {
-        destins.push(points[i].destination.name);
-      }
-    }
-    destins.unshift(points[0].destination.name);
-    return destins.join(' - ');
+    return points.length >= MAX_SHOWN_DESTINATIONS
+      ? `${points[0].destination.name} — ... — ${points[points.length - 1].destination.name}`
+      : `${points.map((point) => point.destination.name).join(' — ')}`;
   };
 
   const totalPrice = points.reduce((acc, point) => {
