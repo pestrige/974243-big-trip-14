@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import { DateType } from '../const.js';
+import flatpickr from 'flatpickr';
+import '../../node_modules/flatpickr/dist/flatpickr.min.css';
 
 const MINUTES_IN_HOUR = 60;
 const MINUTES_IN_DAY = 1440;
@@ -69,16 +71,18 @@ export const sortByTime = (pointA, pointB) => {
   return durationPointB - durationPointA;
 };
 
-// Получаем дату конца периода
-// export const getDateFrom = (period) => {
-//   switch (period) {
-//     case DatePeriod.TODAY:
-//       return dayjs().toDate();
-//     case DatePeriod.WEEK:
-//       return dayjs().subtract(DAYS_WEEK, 'day').toDate();
-//     case DatePeriod.MONTH:
-//       return dayjs().subtract(1, 'month').toDate();
-//     case DatePeriod.YEAR:
-//       return dayjs().subtract(1, 'year').toDate();
-//   }
-// };
+// Календарь
+export const createDatePicker = (container, defaultDate, onChangeCallback, onCloseCallback, minDate = null) => {
+  return flatpickr(
+    container,
+    {
+      dateFormat: 'd/m/Y H:i',
+      defaultDate,
+      minDate,
+      enableTime: true,
+      time_24hr: true,
+      onChange: onChangeCallback,
+      onClose: onCloseCallback,
+    },
+  );
+};

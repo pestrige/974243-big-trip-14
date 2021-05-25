@@ -5,6 +5,7 @@ export const RenderPosition = {
 export const ApiUrl = {
   POINTS: 'points',
   DESTINATIONS: 'destinations',
+  OFFERS: 'offers',
 };
 export const DataType = {
   POINTS: 'points',

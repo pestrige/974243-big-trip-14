@@ -14,7 +14,7 @@ import { sortByDate, sortByTime } from '../utils/dates.js';
 import { UpdateType, SortType } from '../const';
 
 export default class BoardPresenter {
-  constructor(eventsContainer, headerContainer, pointsModel) {
+  constructor(eventsContainer, headerContainer, pointsModel, destinationsModel, offersModel) {
     //containers
     this._eventsContainer = eventsContainer;
     this._headerContainer = headerContainer;
@@ -23,6 +23,8 @@ export default class BoardPresenter {
 
     //models
     this._pointsModel = pointsModel;
+    this._destinationsModel = destinationsModel;
+    this._offersModel = offersModel;
 
     // presenters
     this._infoPresenter = null;
@@ -48,6 +50,7 @@ export default class BoardPresenter {
     this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handlePointsListClick = this._handlePointsListClick.bind(this);
     this._handleSortButtonsClick = this._handleSortButtonsClick.bind(this);
+    this._handleEsckeydown = this._handleEsckeydown.bind(this);
   }
 
   init() {
@@ -179,8 +182,14 @@ export default class BoardPresenter {
       }
     }
     // открываем карточку
-    this._pointFullPresenter = new PointFullPresenter(this._pointsContainerComponent);
+    this._pointFullPresenter = new PointFullPresenter(this._pointsContainerComponent, this._destinationsModel, this._offersModel);
     this._pointFullPresenter.init(point, pointPresenter);
+    this._pointFullPresenter.setEscKeydownHandler(this._handleEsckeydown);
+  }
+
+  _handleEsckeydown() {
+    this._pointFullPresenter.destroy();
+    this._pointFullPresenter = null;
   }
 
   _handleSortButtonsClick(sortType) {
