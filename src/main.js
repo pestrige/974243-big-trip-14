@@ -36,12 +36,12 @@ offersModel.getData(ApiUrl.OFFERS, DataType.OTHER)
   .catch(() => offersModel.setItems([]));
 
 const headerContainer = document.querySelector('.trip-main');
-const eventsContainer = document.querySelector('.trip-events');
+const bodyContainer = document.querySelector('.trip-container');
 const filtersContainer = document.querySelector('.trip-controls__filters');
 
 const filtersPresenter = new FiltersPresenter(filtersContainer, filtersModel, pointsModel);
 const boardPresenter = new BoardPresenter(
-  eventsContainer,
+  bodyContainer,
   headerContainer,
   pointsModel,
   destinationsModel,

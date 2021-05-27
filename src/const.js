@@ -42,3 +42,8 @@ export const ActionType = {
   FAVORITE: 'favorite',
   UPDATE: 'update',
 };
+
+export const MenuType = {
+  POINTS: 'points',
+  STATS: 'stats',
+};

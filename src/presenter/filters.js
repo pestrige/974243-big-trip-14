@@ -22,10 +22,12 @@ export default class MenuPresenter {
     return getFilteredPointsCounts(points);
   }
 
-  init() {
+  init(isDisable = false) {
     const oldComponent = this._component;
-    this._component = new FiltersView(this._getFiltersCount(), this._filtersModel.getFilter());
-    this._component.setTypeChangeHandler(this._handleTypeChange);
+    this._component = new FiltersView(this._getFiltersCount(), this._filtersModel.getFilter(), isDisable);
+    if (!isDisable) {
+      this._component.setTypeChangeHandler(this._handleTypeChange);
+    }
     if (oldComponent === null) {
       render(this._container, this._component);
       return;
@@ -38,7 +40,7 @@ export default class MenuPresenter {
     this._filtersModel.setFilter(UpdateType.MAJOR, filterType);
   }
 
-  _handleModelEvent() {
-    this.init();
+  _handleModelEvent(_updateType, _activeFilter, isDisable) {
+    this.init(isDisable);
   }
 }

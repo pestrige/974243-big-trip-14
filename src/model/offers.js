@@ -8,7 +8,6 @@ export default class Offers extends AbstractModel {
 
   setItems(offers) {
     this._offers = offers.slice();
-    //this._notify(updateType, this._offers);
   }
 
   getItems() {

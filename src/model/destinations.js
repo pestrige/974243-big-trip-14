@@ -8,7 +8,6 @@ export default class Destinations extends AbstractModel {
 
   setItems(destinations) {
     this._destinations = destinations.slice();
-    //this._notify(updateType, this._destinations);
   }
 
   getItems() {

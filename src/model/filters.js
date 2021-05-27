@@ -12,9 +12,11 @@ export default class Filters extends AbstractModel {
     this._notify(updateType, this._activeFilter);
   }
 
-  setDefault() {
-    this._activeFilter = FilterType.ALL;
-    this._notify(UpdateType.MAJOR, this._activeFilter);
+  setDefault({notifyOnly = false, setDisabled = false} = {}) {
+    if (!notifyOnly) {
+      this._activeFilter = FilterType.ALL;
+    }
+    this._notify(UpdateType.MAJOR, this._activeFilter, setDisabled);
   }
 
   getFilter() {

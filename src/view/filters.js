@@ -2,13 +2,19 @@ import AbstractView from './abstract.js';
 
 const FILTER_CLASS = 'trip-filters__filter-input';
 
-const createFiltersElement = (filtersCount, activeFilter) => {
+const createFiltersElement = (filtersCount, activeFilter, isDisabled) => {
   const FILTER_NAME_NUMBER = 0;
   const FILTER_COUNT_NUMBER = 1;
+  const setDisabled = (item) => {
+    if (isDisabled) {
+      return 'disabled';
+    }
+    return item[FILTER_COUNT_NUMBER] ? '' : 'disabled';
+  };
   const renderFilters = () => {
     return Object.entries(filtersCount).reduce((acc, item) => {
       return acc + `<div class="trip-filters__filter">
-  <input id="filter-${item[FILTER_NAME_NUMBER]}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${item[FILTER_NAME_NUMBER]}" ${activeFilter === item[FILTER_NAME_NUMBER] ? 'checked' : ''} ${item[FILTER_COUNT_NUMBER] ? '' : 'disabled'}>
+  <input id="filter-${item[FILTER_NAME_NUMBER]}" class="trip-filters__filter-input  visually-hidden" type="radio" name="trip-filter" value="${item[FILTER_NAME_NUMBER]}" ${activeFilter === item[FILTER_NAME_NUMBER] ? 'checked' : ''} ${setDisabled(item)}>
   <label class="trip-filters__filter-label" for="filter-${item[FILTER_NAME_NUMBER]}">${item[FILTER_NAME_NUMBER]} ${item[FILTER_COUNT_NUMBER]}</label>
 </div>
 `;
@@ -23,15 +29,16 @@ const createFiltersElement = (filtersCount, activeFilter) => {
 };
 
 export default class Filters extends AbstractView {
-  constructor(count, activeFilter) {
+  constructor(count, activeFilter, isDisabled) {
     super();
     this._count = count;
     this._activeFilter = activeFilter;
+    this._isDisabled = isDisabled;
     this._typeChangeHandler = this._typeChangeHandler.bind(this);
   }
 
   getTemplate() {
-    return createFiltersElement(this._count, this._activeFilter);
+    return createFiltersElement(this._count, this._activeFilter, this._isDisabled);
   }
 
   setTypeChangeHandler(callback) {

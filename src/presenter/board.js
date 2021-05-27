@@ -7,15 +7,17 @@ import LoadingView from '../view/loading.js';
 import NoPointsView from '../view/no-points.js';
 import SortView from '../view/sort.js';
 import NewPointButtonView from '../view/new-point-button.js';
-import PointsContainerView from '../view/pointsContainer';
+import EventsContainerView from '../view/eventsContainer.js';
+import PointsContainerView from '../view/pointsContainer.js';
+import StatsView from '../view/stats.js';
 import { render, remove } from '../utils/render.js';
 import { sortByPrice } from '../utils/common.js';
 import { sortByDate, sortByTime, filter } from '../utils/dates.js';
-import { UpdateType, SortType, ActionType } from '../const';
+import { UpdateType, SortType, ActionType, MenuType } from '../const';
 
 export default class BoardPresenter {
   constructor(
-    eventsContainer,
+    bodyContainer,
     headerContainer,
     pointsModel,
     destinationsModel,
@@ -23,7 +25,8 @@ export default class BoardPresenter {
     filtersModel,
   ) {
     //containers
-    this._eventsContainer = eventsContainer;
+    this._bodyContainer = bodyContainer;
+    this._eventsContainer = null;
     this._headerContainer = headerContainer;
     this._menuContainer = this._headerContainer.querySelector('.trip-controls__navigation');
 
@@ -38,26 +41,31 @@ export default class BoardPresenter {
     this._pointFullPresenter = null;
     this._pointPresentersList = new Map();
 
-    // dymanic components
-    this._menuComponent = new MenuView();
+    // dynamic components
     this._sortComponent = null;
+    this._menuComponent = null;
+    this._statsComponent = null;
 
     // static components
     this._loadingComponent = new LoadingView();
     this._noPointsComponent = new NoPointsView();
+    this._eventsContainerComponent = new EventsContainerView();
     this._pointsContainerComponent = new PointsContainerView();
     this._newPointButtonComponent = new NewPointButtonView();
 
     // options
     this._isLoading = true;
     this._isNewPointOpen = false;
+    this._isStatsOpen = false;
     this._currentSortType = SortType.DAY;
+    this._activeMenu = MenuType.POINTS;
 
     // handlers
     this._handleViewAction = this._handleViewAction.bind(this);
     this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handlePointsListClick = this._handlePointsListClick.bind(this);
     this._handleSortButtonsClick = this._handleSortButtonsClick.bind(this);
+    this._handleMenuClick = this._handleMenuClick.bind(this);
     this._handleNewPointButtonClick = this._handleNewPointButtonClick.bind(this);
   }
 
@@ -93,6 +101,12 @@ export default class BoardPresenter {
   _render() {
     const points = this._getPoints();
     this._renderHeader();
+    if (this._isStatsOpen) {
+      this._renderStats();
+      return;
+    }
+
+    this._rendeEventsContainer();
     this._renderSort();
     if (this._isLoading) {
       render(this._eventsContainer, this._loadingComponent);
@@ -111,9 +125,27 @@ export default class BoardPresenter {
     this._infoPresenter = new InfoPresenter(this._headerContainer, this._getPoints({daySortOnly: true}));
     this._infoPresenter.init();
 
+    if (this._menuComponent) {
+      remove(this._menuComponent);
+      this._menuComponent = null;
+    }
+    this._menuComponent = new MenuView(this._activeMenu);
     render(this._menuContainer, this._menuComponent);
+    this._menuComponent.setLinkClickHandler(this._handleMenuClick);
+
     render(this._headerContainer, this._newPointButtonComponent);
+    if (this._isStatsOpen) {
+      this._newPointButtonComponent.setDisabled();
+      this._newPointButtonComponent.removeClickHandler();
+      return;
+    }
+    this._newPointButtonComponent.removeDisabled();
     this._newPointButtonComponent.setClickHandler(this._handleNewPointButtonClick);
+  }
+
+  _rendeEventsContainer() {
+    render(this._bodyContainer, this._eventsContainerComponent);
+    this._eventsContainer = this._eventsContainerComponent.getElement();
   }
 
   _renderSort() {
@@ -155,19 +187,30 @@ export default class BoardPresenter {
     this._pointFullPresenter.init(point, pointPresenter);
   }
 
+  _renderStats() {
+    this._statsComponent = new StatsView(this._getPoints({daySortOnly: true}));
+    render(this._bodyContainer, this._statsComponent);
+  }
+
   // методы очистки и обновления
   _clear({resetSort = false} ={}) {
     if (resetSort) {
       this._currentSortType = SortType.DAY;
     }
+
+    if(this._statsComponent) {
+      remove(this._statsComponent);
+      this._statsComponent = null;
+    }
     if (this._pointFullPresenter) {
       this._clearPointFullPresenter();
     }
-
     this._pointPresentersList
       .forEach((point) => point.destroy());
     this._pointPresentersList.clear();
+    remove(this._menuComponent);
     remove(this._sortComponent);
+    remove(this._eventsContainerComponent);
     this._infoPresenter.destroy();
     this._infoPresenter = null;
   }
@@ -179,6 +222,7 @@ export default class BoardPresenter {
     this._pointFullPresenter.destroy();
     this._pointFullPresenter = null;
     this._newPointButtonComponent.removeDisabled();
+    this._newPointButtonComponent.setClickHandler(this._handleNewPointButtonClick);
   }
 
   _rerenderPoint(updatedPoint) {
@@ -252,7 +296,7 @@ export default class BoardPresenter {
         return;
       }
     }
-    // открываем карточку
+
     this._renderPointFull(point, pointPresenter);
   }
 
@@ -279,6 +323,22 @@ export default class BoardPresenter {
 
     this._isNewPointOpen = true;
     this._newPointButtonComponent.setDisabled();
+    this._newPointButtonComponent.removeClickHandler();
     this._renderPointFull();
+  }
+
+  _handleMenuClick(menuType) {
+    switch (menuType) {
+      case MenuType.POINTS:
+        this._activeMenu = MenuType.POINTS;
+        this._isStatsOpen = false;
+        this._filtersModel.setDefault({notifyOnly: true, setDisabled: false});
+        break;
+      case MenuType.STATS:
+        this._activeMenu = MenuType.STATS;
+        this._isStatsOpen = true;
+        this._filtersModel.setDefault({notifyOnly: true, setDisabled: true});
+        break;
+    }
   }
 }

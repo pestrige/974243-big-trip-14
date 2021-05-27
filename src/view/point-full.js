@@ -357,6 +357,5 @@ export default class PointFull extends AbstractSmartView {
       case 'event-end-time-1':
         this.updateState({dateTo: selectedDate[0]}, true);
     }
-    //this._setDatePickers();
   }
 }

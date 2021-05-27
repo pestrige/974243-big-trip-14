@@ -14,17 +14,9 @@ export const getDateDiff = (dateFrom, dateTo, diffOnly = false) => {
   if (diffOnly) {
     return Math.round(diff);
   }
-  const days = formatTwoDigits(Math.trunc(diff / 1440));
-  const hours = formatTwoDigits(Math.trunc(diff / 60));
-  const minutes = formatTwoDigits(Math.round(diff % 60));
-  if (diff <= MINUTES_IN_HOUR) {
-    return `${formatTwoDigits(diff)}M`;
-  } else if (diff <= MINUTES_IN_DAY) {
-    return `${hours}H ${minutes}M`;
-  }
-
-  return `${days}D ${hours}H ${minutes}M`;
+  return humanizeDuration(diff);
 };
+
 export const humanizeDate = (date, formatType) => {
   switch (formatType) {
     case DateType.DIGITS:
@@ -38,17 +30,18 @@ export const humanizeDate = (date, formatType) => {
   }
 };
 
-// Переводим минуты в часы и минуты
-export const humanizeDuration = (duration, {asObject = false} = {}) => {
-  const hours = Math.trunc(duration / 60);
-  const minutes = duration % 60;
-  if (asObject) {
-    return {
-      hours,
-      minutes,
-    };
+// Переводим минуты в дни, часы и минуты
+export const humanizeDuration = (duration) => {
+  const days = formatTwoDigits(Math.trunc(duration / 1440));
+  const hours = formatTwoDigits(Math.trunc(duration / 60));
+  const minutes = formatTwoDigits(Math.round(duration % 60));
+  if (duration <= MINUTES_IN_HOUR) {
+    return `${formatTwoDigits(duration)}M`;
+  } else if (duration <= MINUTES_IN_DAY) {
+    return `${hours}H ${minutes}M`;
   }
-  return `${hours}h ${minutes}m`;
+
+  return `${days}D ${hours}H ${minutes}M`;
 };
 
 // Проверяем есть ли дата в диапазоне
@@ -62,7 +55,6 @@ export const sortByDate = (pointA, pointB) => {
   const datePointA = pointA.dateFrom;
   const datePointB = pointB.dateFrom;
   return dayjs(datePointA).diff(datePointB);
-  //return new Date(datePointA) - new Date(datePointB);
 };
 
 // Сортируем по продолжительности
