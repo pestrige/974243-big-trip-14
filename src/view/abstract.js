@@ -26,11 +26,13 @@ export default class Abstract {
     this._element = null;
   }
 
-  shake(element, callback) {
+  shake(element, callback = null) {
     element.style.animation = `shake ${ANIMATION_DURATION / 1000}s`;
     setTimeout(() => {
-      this.getElement().style.animation = '';
-      callback();
+      element.style.animation = '';
+      if (callback) {
+        callback();
+      }
     }, ANIMATION_DURATION);
   }
 }

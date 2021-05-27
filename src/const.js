@@ -34,3 +34,11 @@ export const FilterType = {
   FUTURE: 'future',
   PAST: 'past',
 };
+
+export const ActionType = {
+  ADD: 'add',
+  CANCEL: 'cancel',
+  DELETE: 'delete',
+  FAVORITE: 'favorite',
+  UPDATE: 'update',
+};

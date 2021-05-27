@@ -61,7 +61,8 @@ export const isDateInRange = (currentDate, dateFrom) => {
 export const sortByDate = (pointA, pointB) => {
   const datePointA = pointA.dateFrom;
   const datePointB = pointB.dateFrom;
-  return dayjs(datePointB).diff(datePointA);
+  return dayjs(datePointA).diff(datePointB);
+  //return new Date(datePointA) - new Date(datePointB);
 };
 
 // Сортируем по продолжительности
@@ -95,7 +96,7 @@ export const filter = {
 };
 
 // Календарь
-export const createDatePicker = (container, defaultDate, onChangeCallback, onCloseCallback, minDate = null) => {
+export const createDatePicker = (container, defaultDate, onChangeCallback, minDate = null) => {
   return flatpickr(
     container,
     {
@@ -105,7 +106,6 @@ export const createDatePicker = (container, defaultDate, onChangeCallback, onClo
       enableTime: true,
       time_24hr: true,
       onChange: onChangeCallback,
-      onClose: onCloseCallback,
     },
   );
 };

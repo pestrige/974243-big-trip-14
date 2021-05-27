@@ -18,11 +18,15 @@ export default class AbstractSmart extends Abstract {
     this.restoreHandlers();
   }
 
-  updateState(update) {
+  updateState(update, justUpdate = false) {
     if (!update) {
       return;
     }
     this._state = {...this._state, ...update};
+
+    if (justUpdate) {
+      return;
+    }
     this.updateElement();
   }
 

@@ -23,16 +23,17 @@ export default class Api {
     token ? this._authorization = token : this._generateToken();
   }
 
-  // addData(data) {
-  //   return this._load({
-  //     url: `${ApiUrl.COMMENTS}/${data.id}`,
-  //     method: Method.POST,
-  //     body: JSON.stringify(data.comment),
-  //     headers: new Headers({'Content-Type': 'application/json'}),
-  //   })
-  //     .then(Api.toJSON)
-  //     .then(({movie}) => this._adaptToClient(movie));
-  // }
+  addData(data) {
+    const adaptedData = this._adaptToServer(data);
+    return this._load({
+      url: `${ApiUrl.POINTS}`,
+      method: Method.POST,
+      body: JSON.stringify(adaptedData),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(Api.toJSON)
+      .then((newPoint) => this._adaptToClient(newPoint));
+  }
 
   getData(dataUrl, dataType = DataType.OTHER) {
     return this._load({url: dataUrl})
@@ -60,6 +61,13 @@ export default class Api {
       .then((data) => this._adaptToClient(data));
   }
 
+  deleteData(id) {
+    return this._load({
+      url: `${ApiUrl.POINTS}/${id}`,
+      method: Method.DELETE,
+    });
+  }
+
   // sync(data) {
   //   return this._load({
   //     url: `${ApiUrl.MOVIES}/sync`,
@@ -68,13 +76,6 @@ export default class Api {
   //     headers: new Headers({'Content-Type': 'application/json'}),
   //   })
   //     .then(Api.toJSON);
-  // }
-
-  // _deleteCommentFromServer(id) {
-  //   return this._load({
-  //     url: `${ApiUrl.COMMENTS}/${id}`,
-  //     method: Method.DELETE,
-  //   });
   // }
 
   _generateToken() {

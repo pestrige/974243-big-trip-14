@@ -1,5 +1,5 @@
 import AbstractModel from './abstract-model.js';
-import { FilterType } from '../const.js';
+import { FilterType, UpdateType } from '../const.js';
 
 export default class Filters extends AbstractModel {
   constructor() {
@@ -12,7 +12,16 @@ export default class Filters extends AbstractModel {
     this._notify(updateType, this._activeFilter);
   }
 
+  setDefault() {
+    this._activeFilter = FilterType.ALL;
+    this._notify(UpdateType.MAJOR, this._activeFilter);
+  }
+
   getFilter() {
     return this._activeFilter;
+  }
+
+  isDefault() {
+    return this._activeFilter === FilterType.ALL;
   }
 }

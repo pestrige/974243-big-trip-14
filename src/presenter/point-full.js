@@ -1,24 +1,28 @@
 import PointFullView from '../view/point-full.js';
-import { remove, replace } from '../utils/render.js';
+import { remove, render, replace } from '../utils/render.js';
+import { ActionType, RenderPosition } from '../const.js';
 
 export default class PointFullPresenter {
-  constructor(containerComponent, destinationsModel, offersModel) {
+  constructor(containerComponent, destinationsModel, offersModel, isNewEvent, handleViewAction) {
     this._container = containerComponent.getElement();
     this._destinationsModel = destinationsModel;
     this._offersModel = offersModel;
+    this._isNewEvent = isNewEvent;
     this._component = null;
-    this._callback = {};
-    this.setEscKeydownHandler = this.setEscKeydownHandler.bind(this);
+    this._handleViewAction = handleViewAction;
     this._handleEscKeydown = this._handleEscKeydown.bind(this);
   }
 
-  init(point, pointPresenter) {
+  init(point = null, pointPresenter = null) {
     this._render(
       point,
       pointPresenter,
       this._destinationsModel.getItems(),
       this._offersModel.getItems(),
     );
+    document.addEventListener('keydown', this._handleEscKeydown);
+    this._component.setResetButtonClickHandler(this._handleViewAction);
+    this._component.setSubmitButtonClickHandler(this._handleViewAction);
   }
 
   getPoint() {
@@ -31,7 +35,9 @@ export default class PointFullPresenter {
 
   destroy() {
     this._component.removeDatePickers();
-    replace(this._component, this._pointPresenter.getComponent());
+    if (this._pointPresenter) {
+      replace(this._component, this._pointPresenter.getComponent());
+    }
     remove(this._component);
     document.removeEventListener('keydown', this._handleEscKeydown);
   }
@@ -41,9 +47,13 @@ export default class PointFullPresenter {
     this._pointPresenter = pointPresenter;
     const oldComponent = this._component;
 
-    this._component = new PointFullView(this._point, destinations, offers);
-    //document.addEventListener('keydown', this._handleEscKeydown);
+    this._component = new PointFullView(this._point, destinations, offers, this._isNewEvent, this._handleViewAction);
 
+    if (this._point === null) {
+      render(this._container, this._component, RenderPosition.START);
+      remove(oldComponent);
+      return;
+    }
     if (oldComponent === null) {
       replace(this._pointPresenter.getComponent(), this._component);
       return;
@@ -53,14 +63,9 @@ export default class PointFullPresenter {
     remove(oldComponent);
   }
 
-  setEscKeydownHandler(callback) {
-    this._callback.escKeydownHandler = callback;
-    document.addEventListener('keydown', this._handleEscKeydown);
-  }
-
   _handleEscKeydown(evt) {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
-      this._callback.escKeydownHandler();
+      this._handleViewAction(ActionType.CANCEL);
     }
   }
 }

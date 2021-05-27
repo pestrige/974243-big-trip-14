@@ -6,11 +6,12 @@ import MenuView from '../view/menu.js';
 import LoadingView from '../view/loading.js';
 import NoPointsView from '../view/no-points.js';
 import SortView from '../view/sort.js';
+import NewPointButtonView from '../view/new-point-button.js';
 import PointsContainerView from '../view/pointsContainer';
 import { render, remove } from '../utils/render.js';
 import { sortByPrice } from '../utils/common.js';
 import { sortByDate, sortByTime, filter } from '../utils/dates.js';
-import { UpdateType, SortType } from '../const';
+import { UpdateType, SortType, ActionType } from '../const';
 
 export default class BoardPresenter {
   constructor(
@@ -45,9 +46,11 @@ export default class BoardPresenter {
     this._loadingComponent = new LoadingView();
     this._noPointsComponent = new NoPointsView();
     this._pointsContainerComponent = new PointsContainerView();
+    this._newPointButtonComponent = new NewPointButtonView();
 
     // options
     this._isLoading = true;
+    this._isNewPointOpen = false;
     this._currentSortType = SortType.DAY;
 
     // handlers
@@ -55,7 +58,7 @@ export default class BoardPresenter {
     this._handleModelEvent = this._handleModelEvent.bind(this);
     this._handlePointsListClick = this._handlePointsListClick.bind(this);
     this._handleSortButtonsClick = this._handleSortButtonsClick.bind(this);
-    this._handleEsckeydown = this._handleEsckeydown.bind(this);
+    this._handleNewPointButtonClick = this._handleNewPointButtonClick.bind(this);
   }
 
   init() {
@@ -64,12 +67,16 @@ export default class BoardPresenter {
     this._filtersModel.addObserver(this._handleModelEvent);
   }
 
-  _getPoints({totalCount = false} = {}) {
+  _getPoints({daySortOnly = false} = {}) {
     const points = this._pointsModel.getItems().slice();
+    if (daySortOnly) {
+      return points.sort(sortByDate);
+    }
+
     const filterType = this._filtersModel.getFilter();
     const filteredPoints = filter[filterType](points);
     switch (this._currentSortType) {
-      case SortType.DATE:
+      case SortType.DAY:
         filteredPoints.sort(sortByDate);
         break;
       case SortType.TIME:
@@ -79,14 +86,13 @@ export default class BoardPresenter {
         filteredPoints.sort(sortByPrice);
         break;
     }
-    return totalCount ? points : filteredPoints;
+    return filteredPoints;
   }
 
   // методы рендера
   _render() {
     const points = this._getPoints();
-    this._renderInfo(this._headerContainer, this._pointsModel.getItems().slice());
-    this._renderMenu();
+    this._renderHeader();
     this._renderSort();
     if (this._isLoading) {
       render(this._eventsContainer, this._loadingComponent);
@@ -101,13 +107,13 @@ export default class BoardPresenter {
     this._renderPoints(points);
   }
 
-  _renderInfo(headerContainer, points) {
-    this._infoPresenter = new InfoPresenter(headerContainer, points);
+  _renderHeader() {
+    this._infoPresenter = new InfoPresenter(this._headerContainer, this._getPoints({daySortOnly: true}));
     this._infoPresenter.init();
-  }
 
-  _renderMenu() {
     render(this._menuContainer, this._menuComponent);
+    render(this._headerContainer, this._newPointButtonComponent);
+    this._newPointButtonComponent.setClickHandler(this._handleNewPointButtonClick);
   }
 
   _renderSort() {
@@ -138,6 +144,17 @@ export default class BoardPresenter {
     this._pointPresentersList.set(point.id, pointPresenter);
   }
 
+  _renderPointFull(point = null, pointPresenter = null) {
+    this._pointFullPresenter = new PointFullPresenter(
+      this._pointsContainerComponent,
+      this._destinationsModel,
+      this._offersModel,
+      this._isNewPointOpen,
+      this._handleViewAction,
+    );
+    this._pointFullPresenter.init(point, pointPresenter);
+  }
+
   // методы очистки и обновления
   _clear({resetSort = false} ={}) {
     if (resetSort) {
@@ -156,8 +173,12 @@ export default class BoardPresenter {
   }
 
   _clearPointFullPresenter() {
+    if (this._isNewPointOpen) {
+      this._isNewPointOpen = false;
+    }
     this._pointFullPresenter.destroy();
     this._pointFullPresenter = null;
+    this._newPointButtonComponent.removeDisabled();
   }
 
   _rerenderPoint(updatedPoint) {
@@ -166,9 +187,28 @@ export default class BoardPresenter {
   }
 
   // Обработчики
-  _handleViewAction(updateType, updatedPoint) {
-    this._pointsModel.updateData(updatedPoint)
-      .then((point) => this._pointsModel.updatePoint(updateType, point));
+  _handleViewAction(userAction, updateType, data = null) {
+    switch (userAction) {
+      case ActionType.FAVORITE:
+        this._pointsModel.updateData(data)
+          .then((point) => this._pointsModel.updatePoint(updateType, point));
+        break;
+      case ActionType.CANCEL:
+        this._clearPointFullPresenter();
+        break;
+      case ActionType.DELETE:
+        this._pointsModel.deleteData(data)
+          .then(() => this._pointsModel.deletePoint(updateType, data));
+        break;
+      case ActionType.ADD:
+        this._pointsModel.addData(data)
+          .then((point) => this._pointsModel.addPoint(updateType, point));
+        break;
+      case ActionType.UPDATE:
+        this._pointsModel.updateData(data)
+          .then((point) => this._pointsModel.updatePoint(updateType, point));
+        break;
+    }
   }
 
   _handleModelEvent(updateType, data) {
@@ -181,6 +221,10 @@ export default class BoardPresenter {
       case UpdateType.PATCH:
         this._rerenderPoint(data);
         break;
+      case UpdateType.MINOR:
+        this._clear();
+        this._render(data);
+        break;
       case UpdateType.MAJOR:
         this._clear({resetSort: true});
         this._render(data);
@@ -190,8 +234,16 @@ export default class BoardPresenter {
 
   // обработчик открытия и закрытия карточки маршрута
   _handlePointsListClick(clickedPointID) {
+    if (clickedPointID === 'null') {
+      this._clearPointFullPresenter();
+      return;
+    }
     const pointPresenter = this._pointPresentersList.get(clickedPointID);
     const point = {...pointPresenter.getPoint()};
+
+    if (this._isNewPointOpen) {
+      this._clearPointFullPresenter();
+    }
 
     if (this._pointFullPresenter) {
       const openedPointID = this._pointFullPresenter.getPoint().id;
@@ -201,14 +253,7 @@ export default class BoardPresenter {
       }
     }
     // открываем карточку
-    this._pointFullPresenter = new PointFullPresenter(this._pointsContainerComponent, this._destinationsModel, this._offersModel);
-    this._pointFullPresenter.init(point, pointPresenter);
-    this._pointFullPresenter.setEscKeydownHandler(this._handleEsckeydown);
-  }
-
-  _handleEsckeydown() {
-    this._pointFullPresenter.destroy();
-    this._pointFullPresenter = null;
+    this._renderPointFull(point, pointPresenter);
   }
 
   _handleSortButtonsClick(sortType) {
@@ -218,5 +263,22 @@ export default class BoardPresenter {
     this._currentSortType = sortType;
     this._clear();
     this._render();
+  }
+
+  _handleNewPointButtonClick() {
+    const isDefaults = () => {
+      return this._currentSortType === SortType.DAY && this._filtersModel.isDefault();
+    };
+
+    if (!isDefaults()) {
+      this._filtersModel.setDefault();
+    }
+    if (this._pointFullPresenter) {
+      this._clearPointFullPresenter();
+    }
+
+    this._isNewPointOpen = true;
+    this._newPointButtonComponent.setDisabled();
+    this._renderPointFull();
   }
 }

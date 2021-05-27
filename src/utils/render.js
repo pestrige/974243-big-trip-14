@@ -56,3 +56,28 @@ export const replace = (oldChild, newChild) => {
   parent.replaceChild(newChild, oldChild);
 };
 
+export const renderTooltip = (target, text) => {
+  const TOP_SPACING = 15;
+  const tooltipElem = document.createElement('div');
+  tooltipElem.className = 'tooltip';
+  tooltipElem.innerText = text;
+  document.body.append(tooltipElem);
+
+  const coords = target.getBoundingClientRect();
+  let left = coords.left + (target.offsetWidth - tooltipElem.offsetWidth) / 2;
+  if (left < 0) {
+    left = 0;
+  }
+  let top = coords.top - tooltipElem.offsetHeight - TOP_SPACING;
+  if (top < 0) {
+    top = coords.top + target.offsetHeight + TOP_SPACING;
+  }
+
+  tooltipElem.style.left = left + 'px';
+  tooltipElem.style.top = top + 'px';
+
+  setTimeout(() => {
+    tooltipElem.remove();
+  }, 3000);
+};
+

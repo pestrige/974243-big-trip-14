@@ -1,12 +1,12 @@
 import PointView from '../view/point.js';
 import { render, remove, replace } from '../utils/render.js';
-import { UpdateType } from '../const.js';
+import { UpdateType, ActionType } from '../const.js';
 
 export default class PointPresenter {
-  constructor(container, handlePointChange) {
+  constructor(container, handleViewAction) {
     this._container = container;
     this._component = null;
-    this._changeData = handlePointChange;
+    this._handleViewAction = handleViewAction;
     this._handleFavoriteButtonClick = this._handleFavoriteButtonClick.bind(this);
   }
 
@@ -38,6 +38,6 @@ export default class PointPresenter {
   }
 
   _handleFavoriteButtonClick(isFavoriteFlag) {
-    this._changeData(UpdateType.PATCH, {...this._point, isFavorite: !isFavoriteFlag});
+    this._handleViewAction(ActionType.FAVORITE, UpdateType.PATCH, {...this._point, isFavorite: !isFavoriteFlag});
   }
 }

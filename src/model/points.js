@@ -15,9 +15,13 @@ export default class Points extends AbstractModel {
     return this._points;
   }
 
+  addPoint(updateType, newPoint) {
+    this._points = [...this._points, newPoint];
+    this._notify(updateType, newPoint);
+  }
+
   updatePoint(updateType, update) {
     this._points = [...this._points];
-    //const updatedPoint = update.id ? this._adaptPointToClient(update) : update;
     const index = this._points.findIndex((point) => point.id === update.id);
     if (index !== -1) {
       this._points.splice(index, 1, update);
@@ -25,5 +29,12 @@ export default class Points extends AbstractModel {
     if (updateType) {
       this._notify(updateType, update);
     }
+  }
+
+  deletePoint(updateType, id) {
+    this._points = [...this._points];
+    const index = this._points.findIndex((point) => point.id === id);
+    this._points.splice(index, 1);
+    this._notify(updateType);
   }
 }
