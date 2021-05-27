@@ -2,6 +2,7 @@ import AbstractSmartView from './abstract-smart.js';
 import { humanizeDate, isDateInRange, createDatePicker } from '../utils/dates.js';
 import { DateType, ActionType, UpdateType } from '../const.js';
 import { renderTooltip } from '../utils/render.js';
+import he from 'he';
 
 const DESTINATION_ERROR_MESSAGE = 'Please choose a destination from the list below';
 const DATE_PICKER_DATE_TO = 1;
@@ -115,7 +116,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
         <label class="event__label  event__type-output" for="event-destination-1">
           ${state.offerType || type}
         </label>
-        <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${state.destinationName || destination.name}" list="destination-list-1" required autocomplete="off">
+        <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(state.destinationName || destination.name)}" list="destination-list-1" required autocomplete="off">
         <datalist id="destination-list-1">
           ${renderDestinations(allDestinations)};
         </datalist>
@@ -134,7 +135,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${state.basePrice || basePrice}" required autocomplete="off">
+        <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${state.basePrice || basePrice}" required autocomplete="off">
       </div>
 
       <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
