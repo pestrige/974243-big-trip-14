@@ -1,10 +1,10 @@
 import AbstractSmartView from './abstract-smart.js';
 import { humanizeDate, isDateInRange, createDatePicker } from '../utils/dates.js';
-import { DateType, ActionType, UpdateType, TargetClass } from '../const.js';
+import { DateType, ActionType, UpdateType, TargetClass, ConnectionStatus, ErrorMessage } from '../const.js';
 import { renderTooltip } from '../utils/render.js';
+import { isOnline } from '../utils/common.js';
 import he from 'he';
 
-const DESTINATION_ERROR_MESSAGE = 'Please choose a destination from the list below';
 const DATE_PICKER_DATE_TO = 1;
 const DEFAULT_OFFER_TYPE = 'taxi';
 const DEFAULT_OFFERS = [];
@@ -78,7 +78,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
       return '';
     }
     const destinationPictures = eventDestination.pictures.reduce((acc, picture) => {
-      return acc + `<img class="event__photo" src="${picture.src}" alt="${picture.description}">
+      return acc + `<img class="event__photo" src="${state.isOffline ? './img/photos/placeholder.jpg' : picture.src}" alt="${picture.description}">
 `;
     }, '');
     const renderPictures = () => `<div class="event__photos-container">
@@ -154,18 +154,20 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
 };
 
 export default class PointFull extends AbstractSmartView {
-  constructor(point, destinations, offers, isNewEvent) {
+  constructor(point, destinations, offers, isNewEvent, connectionObserver) {
     super();
     this._point = point || {};
     this._destinations = destinations;
     this._offers = offers;
     this._isNewEvent = isNewEvent;
     this._datepickers = [];
+    this._connectionObserver = connectionObserver;
 
     this._dateInputClass = 'event__input--time';
     this._destinationInputClass = 'event__input';
     this._eventTypeInputClass = 'event__type-input';
     this._offerCheckboxClass = 'event__offer-checkbox';
+    this._submitButtonClass = 'event__save-btn';
 
     this._dateInputChangeHandler = this._dateInputChangeHandler.bind(this);
     this._destinationChangeHandler = this._destinationChangeHandler.bind(this);
@@ -174,12 +176,16 @@ export default class PointFull extends AbstractSmartView {
     this._priceInpitChangeHandler = this._priceInpitChangeHandler.bind(this);
     this._resetButtonClickHandler = this._resetButtonClickHandler.bind(this);
     this._submitButtonClickHandler = this._submitButtonClickHandler.bind(this);
+    this._handleConnectionStatus = this._handleConnectionStatus.bind(this);
 
     this._setDatePickers();
     this._setInnerHandlers();
+
+    this._connectionObserver.addObserver(this._handleConnectionStatus);
   }
 
   getTemplate() {
+    this.updateState({isOffline: !isOnline()}, {justUpdate: true});
     return createPointFullElement(this._point, this._destinations, this._offers, this._state, this._isNewEvent);
   }
 
@@ -287,12 +293,24 @@ export default class PointFull extends AbstractSmartView {
   // обработчики
   _submitButtonClickHandler(evt) {
     evt.preventDefault();
+    if (this._state.isOffline) {
+      const button = evt.target.querySelector(`.${this._submitButtonClass}`);
+      const errorMeggage = this._isNewEvent ? ErrorMessage.SUBMIT_OFFLINE : ErrorMessage.SAVING_OFFLINE;
+      const tooltip = renderTooltip(button, errorMeggage);
+      this.shake(button, tooltip);
+      return;
+    }
     const actionType = this._isNewEvent ? ActionType.ADD : ActionType.UPDATE;
     this._callback.submitButtonClick(actionType, UpdateType.MINOR, this._adaptStateToData(), TargetClass.SUBMIT);
   }
 
   _resetButtonClickHandler(evt) {
     evt.preventDefault();
+    if (this._state.isOffline && !this._isNewEvent) {
+      const tooltip = renderTooltip(evt.target, ErrorMessage.DELETING_OFFLINE);
+      this.shake(evt.target, tooltip);
+      return;
+    }
     const actionType = this._isNewEvent ? ActionType.CANCEL : ActionType.DELETE;
     const pointID = this._isNewEvent ? null : this._point.id;
     this._callback.resetButtonClick(actionType, UpdateType.MINOR, pointID, TargetClass.DELETE);
@@ -315,9 +333,9 @@ export default class PointFull extends AbstractSmartView {
     evt.preventDefault();
     const isValidDestination = this._destinations.some((destination) => destination.name === target.value);
     if(!isValidDestination) {
-      const tooltip = renderTooltip(target, DESTINATION_ERROR_MESSAGE);
+      const tooltip = renderTooltip(target, ErrorMessage.DESTINATION);
       this.shake(target, tooltip);
-      return target.setCustomValidity(DESTINATION_ERROR_MESSAGE);
+      return target.setCustomValidity(ErrorMessage.DESTINATION);
     }
     this.updateState({destinationName: target.value});
   }
@@ -355,6 +373,16 @@ export default class PointFull extends AbstractSmartView {
         break;
       case 'event-end-time-1':
         this.updateState({dateTo: selectedDate[0]}, {justUpdate: true});
+    }
+  }
+
+  _handleConnectionStatus(status) {
+    switch (status) {
+      case ConnectionStatus.ONLINE:
+        this.updateState({isOffline: false}, {justUpdate: true});
+        break;
+      case ConnectionStatus.OFFLINE:
+        this.updateState({isOffline: true}, {justUpdate: true});
     }
   }
 }

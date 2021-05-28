@@ -23,6 +23,7 @@ export default class BoardPresenter {
     destinationsModel,
     offersModel,
     filtersModel,
+    connectionObserver,
   ) {
     //containers
     this._bodyContainer = bodyContainer;
@@ -35,6 +36,9 @@ export default class BoardPresenter {
     this._destinationsModel = destinationsModel;
     this._offersModel = offersModel;
     this._filtersModel = filtersModel;
+
+    //observer
+    this._connectionObserver = connectionObserver;
 
     // presenters
     this._infoPresenter = null;
@@ -110,11 +114,12 @@ export default class BoardPresenter {
       render(this._eventsContainer, this._loadingComponent);
       return;
     }
-    this._renderSort();
-    if (points.length < 0) {
+    if (points.length === 0) {
       render(this._eventsContainer, this._noPointsComponent);
       return;
     }
+
+    this._renderSort();
     this._renderPointsContainer();
     this._renderPoints(points);
   }
@@ -181,6 +186,7 @@ export default class BoardPresenter {
       this._offersModel,
       this._isNewPointOpen,
       this._handleViewAction,
+      this._connectionObserver,
     );
     this._pointFullPresenter.init(point, pointPresenter);
   }
@@ -232,7 +238,7 @@ export default class BoardPresenter {
   _handleViewAction(userAction, updateType, data = null, target = null) {
     switch (userAction) {
       case ActionType.FAVORITE:
-        this._pointsModel.updateData(data)
+        this._pointsModel.updateCachedData(data)
           .then((point) => this._pointsModel.updatePoint(updateType, point));
         break;
       case ActionType.CANCEL:
@@ -323,6 +329,11 @@ export default class BoardPresenter {
     }
     if (this._pointFullPresenter) {
       this._clearPointFullPresenter();
+    }
+    if (this._getPoints().length === 0) {
+      remove(this._noPointsComponent);
+      this._renderSort();
+      this._renderPointsContainer();
     }
 
     this._isNewPointOpen = true;

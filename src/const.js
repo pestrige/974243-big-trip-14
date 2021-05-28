@@ -9,6 +9,8 @@ export const ApiUrl = {
 };
 export const DataType = {
   POINTS: 'points',
+  DESTINATIONS: 'destinations',
+  OFFERS: 'offers',
   OTHER: 'other',
 };
 export const DateType = {
@@ -57,4 +59,16 @@ export const PointState = {
 export const TargetClass = {
   SUBMIT: 'event__save-btn',
   DELETE: 'event__reset-btn',
+};
+
+export const ConnectionStatus = {
+  ONLINE: 'online',
+  OFFLINE: 'offline',
+};
+
+export const ErrorMessage = {
+  DESTINATION: 'Please choose a destination from the list below',
+  SUBMIT_OFFLINE: 'Can\'t add the point in offline',
+  SAVING_OFFLINE: 'Can\'t save the point in offline',
+  DELETING_OFFLINE: 'Can\'t delete the point in offline',
 };

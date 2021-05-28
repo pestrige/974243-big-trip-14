@@ -3,10 +3,11 @@ import { remove, render, replace, renderTooltip } from '../utils/render.js';
 import { ActionType, RenderPosition, PointState } from '../const.js';
 
 export default class PointFullPresenter {
-  constructor(containerComponent, destinationsModel, offersModel, isNewEvent, handleViewAction) {
+  constructor(containerComponent, destinationsModel, offersModel, isNewEvent, handleViewAction, connectionObserver) {
     this._container = containerComponent.getElement();
     this._destinationsModel = destinationsModel;
     this._offersModel = offersModel;
+    this._connectionObserver = connectionObserver;
     this._isNewEvent = isNewEvent;
     this._component = null;
     this._handleViewAction = handleViewAction;
@@ -64,7 +65,7 @@ export default class PointFullPresenter {
     this._pointPresenter = pointPresenter;
     const oldComponent = this._component;
 
-    this._component = new PointFullView(this._point, destinations, offers, this._isNewEvent, this._handleViewAction);
+    this._component = new PointFullView(this._point, destinations, offers, this._isNewEvent, this._connectionObserver);
 
     if (this._point === null) {
       render(this._container, this._component, RenderPosition.START);

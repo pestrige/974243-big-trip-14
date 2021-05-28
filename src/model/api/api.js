@@ -23,18 +23,6 @@ export default class Api {
     token ? this._authorization = token : this._generateToken();
   }
 
-  addData(data) {
-    const adaptedData = this._adaptToServer(data);
-    return this._load({
-      url: `${ApiUrl.POINTS}`,
-      method: Method.POST,
-      body: JSON.stringify(adaptedData),
-      headers: new Headers({'Content-Type': 'application/json'}),
-    })
-      .then(Api.toJSON)
-      .then((newPoint) => this._adaptToClient(newPoint));
-  }
-
   getData(dataUrl, dataType = DataType.OTHER) {
     return this._load({url: dataUrl})
       .then(Api.toJSON)
@@ -47,6 +35,18 @@ export default class Api {
             return data;
         }
       });
+  }
+
+  addData(data) {
+    const adaptedData = this._adaptToServer(data);
+    return this._load({
+      url: `${ApiUrl.POINTS}`,
+      method: Method.POST,
+      body: JSON.stringify(adaptedData),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(Api.toJSON)
+      .then((newPoint) => this._adaptToClient(newPoint));
   }
 
   updateData(data) {
@@ -68,15 +68,15 @@ export default class Api {
     });
   }
 
-  // sync(data) {
-  //   return this._load({
-  //     url: `${ApiUrl.MOVIES}/sync`,
-  //     method: Method.POST,
-  //     body: JSON.stringify(data),
-  //     headers: new Headers({'Content-Type': 'application/json'}),
-  //   })
-  //     .then(Api.toJSON);
-  // }
+  sync(data) {
+    return this._load({
+      url: `${ApiUrl.POINTS}/sync`,
+      method: Method.POST,
+      body: JSON.stringify(data),
+      headers: new Headers({'Content-Type': 'application/json'}),
+    })
+      .then(Api.toJSON);
+  }
 
   _generateToken() {
     const randomString = Math.random().toString(36).replace(/[.]/g, '');

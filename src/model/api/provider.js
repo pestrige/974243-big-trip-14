@@ -4,8 +4,9 @@ import { DataType } from '../../const.js';
 
 const createStoreStructure = (items) => {
   return items.reduce((acc, current) => {
+    const key = current.id || current.name || current.type;
     return Object.assign({}, acc, {
-      [current.id]: current,
+      [key]: current,
     });
   }, {});
 };
@@ -20,54 +21,53 @@ export default class Provider extends Api {
     return this._store;
   }
 
-  getDataToCache(dataUrl, store, {dataType = DataType.COMMENTS, id = null}) {
+  getCachedData(dataUrl, store, {dataType = DataType.OTHER}) {
     this._store = store;
     if (isOnline()) {
       return this.getData(dataUrl, dataType)
         .then((data) => {
           // В зависимости от типа данных обрабатываем их и передаем в хранилище
-          const adaptedToServer = dataType === DataType.FILMS ? [...data].map(this._adaptToServer) : data;
+          const adaptedToServer = dataType === DataType.POINTS ? [...data].map(this._adaptToServer) : data;
           const items = createStoreStructure(adaptedToServer);
-          this._store.setItems(items, dataType, id);
+          this._store.setItems(items, dataType);
           return {data, isCached: true};
         });
     }
 
     // если офлайн, возвращаем данные из хранилища
-    const storeData = Object.values(this._store.getItems(dataType, id));
-    const adaptedStoreData = dataType === DataType.FILMS
+    const storeData = Object.values(this._store.getItems(dataType));
+    const adaptedStoreData = dataType === DataType.POINTS
       ? [...storeData].map((item) => this._adaptToClient(item))
       : storeData;
-    //флаг, если нет закешированных данных (нужно для комментариев)
+    // флаг, если нет закешированных данных (нужно для комментариев)
     const isCached = storeData.length > 0;
     return Promise.resolve({data: adaptedStoreData, isCached});
   }
 
-  updateDataToCache(data) {
+  updateCachedData(data) {
     if (isOnline()) {
       return this.updateData(data)
-        .then((updatedFilm) => {
-          this._store.setItem(updatedFilm.filmInfo.id, this._adaptToServer(updatedFilm), DataType.FILMS);
-          return updatedFilm;
+        .then((updatedPoint) => {
+          this._store.setItem(updatedPoint.id, this._adaptToServer(updatedPoint), DataType.POINTS);
+          return updatedPoint;
         });
     }
 
-    this._store.setItem(data.filmInfo.id, this._adaptToServer(Object.assign({}, data)), DataType.FILMS);
+    this._store.setItem(data.id, this._adaptToServer(Object.assign({}, data)), DataType.POINTS);
 
     return Promise.resolve(data);
   }
 
-  syncToCache() {
+  syncCached() {
     if (isOnline()) {
-      const storeFilms = Object.values(this._store.getItems());
-      return this.sync(storeFilms)
+      const storePoints = Object.values(this._store.getItems());
+      return this.sync(storePoints)
         .then((response) => {
           // Забираем из ответа синхронизированные задачи
-          const updatedFilms = response.updated;
+          const updatedPoints = response.updated;
 
-          // Добавляем синхронизированные задачи в хранилище.
-          // Хранилище должно быть актуальным в любой момент.
-          const items = createStoreStructure([ ...updatedFilms]);
+          // Добавляем синхронизированные задачи в хранилище
+          const items = createStoreStructure([ ...updatedPoints]);
           this._store.setItems(items);
         });
     }
