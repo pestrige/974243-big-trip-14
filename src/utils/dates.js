@@ -96,7 +96,7 @@ export const createDatePicker = (container, defaultDate, onChangeCallback, minDa
       defaultDate,
       minDate,
       enableTime: true,
-      time_24hr: true,
+      'time_24hr': true,
       onChange: onChangeCallback,
     },
   );
