@@ -13,7 +13,7 @@ import StatsView from '../view/stats.js';
 import { render, remove } from '../utils/render.js';
 import { sortByPrice } from '../utils/common.js';
 import { sortByDate, sortByTime, filter } from '../utils/dates.js';
-import { UpdateType, SortType, ActionType, MenuType } from '../const';
+import { UpdateType, SortType, ActionType, MenuType, PointState } from '../const';
 
 export default class BoardPresenter {
   constructor(
@@ -105,18 +105,16 @@ export default class BoardPresenter {
       this._renderStats();
       return;
     }
-
     this._rendeEventsContainer();
-    this._renderSort();
     if (this._isLoading) {
       render(this._eventsContainer, this._loadingComponent);
       return;
     }
+    this._renderSort();
     if (points.length < 0) {
       render(this._eventsContainer, this._noPointsComponent);
       return;
     }
-
     this._renderPointsContainer();
     this._renderPoints(points);
   }
@@ -231,7 +229,7 @@ export default class BoardPresenter {
   }
 
   // Обработчики
-  _handleViewAction(userAction, updateType, data = null) {
+  _handleViewAction(userAction, updateType, data = null, target = null) {
     switch (userAction) {
       case ActionType.FAVORITE:
         this._pointsModel.updateData(data)
@@ -241,16 +239,22 @@ export default class BoardPresenter {
         this._clearPointFullPresenter();
         break;
       case ActionType.DELETE:
+        this._pointFullPresenter.setState(PointState.DELETING);
         this._pointsModel.deleteData(data)
-          .then(() => this._pointsModel.deletePoint(updateType, data));
+          .then(() => this._pointsModel.deletePoint(updateType, data))
+          .catch((error) => this._pointFullPresenter.setState(PointState.ERROR, target, error));
         break;
       case ActionType.ADD:
+        this._pointFullPresenter.setState(PointState.SAVING);
         this._pointsModel.addData(data)
-          .then((point) => this._pointsModel.addPoint(updateType, point));
+          .then((point) => this._pointsModel.addPoint(updateType, point))
+          .catch((error) => this._pointFullPresenter.setState(PointState.ERROR, target, error));
         break;
       case ActionType.UPDATE:
+        this._pointFullPresenter.setState(PointState.SAVING);
         this._pointsModel.updateData(data)
-          .then((point) => this._pointsModel.updatePoint(updateType, point));
+          .then((point) => this._pointsModel.updatePoint(updateType, point))
+          .catch((error) => this._pointFullPresenter.setState(PointState.ERROR, target, error));
         break;
     }
   }

@@ -1,6 +1,6 @@
 import PointFullView from '../view/point-full.js';
-import { remove, render, replace } from '../utils/render.js';
-import { ActionType, RenderPosition } from '../const.js';
+import { remove, render, replace, renderTooltip } from '../utils/render.js';
+import { ActionType, RenderPosition, PointState } from '../const.js';
 
 export default class PointFullPresenter {
   constructor(containerComponent, destinationsModel, offersModel, isNewEvent, handleViewAction) {
@@ -31,6 +31,23 @@ export default class PointFullPresenter {
 
   getComponent() {
     return this._component;
+  }
+
+  setState(state, targetClass, payload) {
+    const resetState = this._component.updateState({isSaving: false, isDeleting: false, isDisabled: false});
+    const target = this._component.getElement().querySelector(`.${targetClass}`);
+    switch (state) {
+      case PointState.SAVING:
+        this._component.updateState({isSaving: true, isDisabled: true}, {disableHandlers: true});
+        break;
+      case PointState.DELETING:
+        this._component.updateState({isDeleting: true, isDisabled: true}, {disableHandlers: true});
+        break;
+      case PointState.ERROR:
+        renderTooltip(target, `${payload}`);
+        this._component.shake(this._component.getElement(), resetState);
+        break;
+    }
   }
 
   destroy() {

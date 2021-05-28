@@ -6,7 +6,7 @@ export default class AbstractSmart extends Abstract {
     this._state = {};
   }
 
-  updateElement() {
+  updateElement(disableHandlers = false) {
     const oldElement = this.getElement();
     const currentScroll = oldElement.scrollTop;
     const parent = oldElement.parentElement;
@@ -15,10 +15,13 @@ export default class AbstractSmart extends Abstract {
     const newElement = this.getElement();
     parent.replaceChild(newElement, oldElement);
     newElement.scrollTop = currentScroll;
+    if (disableHandlers) {
+      return;
+    }
     this.restoreHandlers();
   }
 
-  updateState(update, justUpdate = false) {
+  updateState(update, {justUpdate = false, disableHandlers = false} = {}) {
     if (!update) {
       return;
     }
@@ -27,7 +30,7 @@ export default class AbstractSmart extends Abstract {
     if (justUpdate) {
       return;
     }
-    this.updateElement();
+    this.updateElement(disableHandlers);
   }
 
   restoreHandlers() {

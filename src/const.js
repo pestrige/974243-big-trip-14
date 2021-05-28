@@ -47,3 +47,14 @@ export const MenuType = {
   POINTS: 'points',
   STATS: 'stats',
 };
+
+export const PointState = {
+  SAVING: 'saving',
+  DELETING: 'deleting',
+  ERROR: 'error',
+};
+
+export const TargetClass = {
+  SUBMIT: 'event__save-btn',
+  DELETE: 'event__reset-btn',
+};

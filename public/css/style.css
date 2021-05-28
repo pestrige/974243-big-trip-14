@@ -1022,7 +1022,7 @@ main {
   content: '';
   position: absolute;
   bottom: -7px;
-  left: 20%;
+  left: calc(50% - 8px);
   width: 15px;
   height: 15px;
   background-color: #ffffff;

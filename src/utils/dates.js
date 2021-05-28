@@ -24,7 +24,7 @@ export const humanizeDate = (date, formatType) => {
     case DateType.SHORT:
       return dayjs(date).format('MMM DD');
     case DateType.FULL:
-      return dayjs(date).format('YYYY/MM/DD HH:mm');
+      return dayjs(date).format('DD/MM/YYYY HH:mm');
     case DateType.MIN:
       return dayjs(date).format('HH:mm');
   }

@@ -1,6 +1,6 @@
 import AbstractSmartView from './abstract-smart.js';
 import { humanizeDate, isDateInRange, createDatePicker } from '../utils/dates.js';
-import { DateType, ActionType, UpdateType } from '../const.js';
+import { DateType, ActionType, UpdateType, TargetClass } from '../const.js';
 import { renderTooltip } from '../utils/render.js';
 import he from 'he';
 
@@ -33,7 +33,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
       const isChecked = () => (state.offers || offers).some((item) => item.title === offer.title);
 
       return acc + `<div class="event__offer-selector">
-  <input class="event__offer-checkbox  visually-hidden" id="event-offer-${getIdName()}" type="checkbox" name="event-offer-${getIdName()}" ${isChecked() ? 'checked' : ''}>
+  <input class="event__offer-checkbox  visually-hidden" id="event-offer-${getIdName()}" type="checkbox" name="event-offer-${getIdName()}" ${isChecked() ? 'checked' : ''} ${state.isDisabled ? 'disabled' : ''}>
   <label class="event__offer-label" for="event-offer-${getIdName()}">
     <span class="event__offer-title">${offer.title}</span>
     &plus;&euro;&nbsp;
@@ -55,7 +55,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
   const renderOffersTypeList = (offers) => {
     const offersTypeList = offers.reduce((acc, offer) => {
       return acc + `<div class="event__type-item">
-  <input id="event-type-${offer.type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${offer.type}">
+  <input id="event-type-${offer.type}-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${offer.type}" ${state.isDisabled ? 'disabled' : ''}>
   <label class="event__type-label  event__type-label--${offer.type}" for="event-type-${offer.type}-1">${offer.type}</label>
 </div>
 `;
@@ -102,7 +102,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
           <span class="visually-hidden">Choose event type</span>
           <img class="event__type-icon" width="17" height="17" src="img/icons/${state.offerType || type}.png" alt="Event type icon">
         </label>
-        <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
+        <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox" ${state.isDisabled ? 'disabled' : ''}>
 
         <div class="event__type-list">
           <fieldset class="event__type-group">
@@ -116,7 +116,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
         <label class="event__label  event__type-output" for="event-destination-1">
           ${state.offerType || type}
         </label>
-        <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(state.destinationName || destination.name)}" list="destination-list-1" required autocomplete="off">
+        <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${he.encode(state.destinationName || destination.name)}" list="destination-list-1" ${state.isDisabled ? 'disabled' : ''} required autocomplete="off">
         <datalist id="destination-list-1">
           ${renderDestinations(allDestinations)};
         </datalist>
@@ -124,10 +124,10 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
 
       <div class="event__field-group  event__field-group--time">
         <label class="visually-hidden" for="event-start-time-1">From</label>
-        <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeDate(state.dateFrom || dateFrom, DateType.FULL)}">
+        <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${humanizeDate(state.dateFrom || dateFrom, DateType.FULL)}" ${state.isDisabled ? 'disabled' : ''}>
         &mdash;
         <label class="visually-hidden" for="event-end-time-1">To</label>
-        <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeDate(state.dateTo || dateTo, DateType.FULL)}">
+        <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${humanizeDate(state.dateTo || dateTo, DateType.FULL)}" ${state.isDisabled ? 'disabled' : ''}>
       </div>
 
       <div class="event__field-group  event__field-group--price">
@@ -135,12 +135,12 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
           <span class="visually-hidden">Price</span>
           &euro;
         </label>
-        <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${state.basePrice || basePrice}" required autocomplete="off">
+        <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${state.basePrice || basePrice}" required autocomplete="off" ${state.isDisabled ? 'disabled' : ''}>
       </div>
 
-      <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-      <button class="event__reset-btn" type="reset">${isNewEvent ? 'Cancel' : 'Delete'}</button>
-      <button class="event__rollup-btn" type="button">
+      <button class="event__save-btn  btn  btn--blue" type="submit" ${state.isDisabled ? 'disabled' : ''}>${state.isSaving ? 'Saving...' : 'Save'}</button>
+      <button class="event__reset-btn" type="reset" ${state.isDisabled ? 'disabled' : ''}>${isNewEvent ? 'Cancel' : state.isDeleting ? 'Deleting...' : 'Delete'}</button>
+      <button class="event__rollup-btn" type="button" ${state.isDisabled ? 'disabled' : ''}>
         <span class="visually-hidden">Close event</span>
       </button>
     </header>
@@ -176,14 +176,54 @@ export default class PointFull extends AbstractSmartView {
     this._submitButtonClickHandler = this._submitButtonClickHandler.bind(this);
 
     this._setDatePickers();
-    this._setDestinationChangeHandler();
-    this._setEventTypeClickHandler();
-    this._setOffersListClickHandler();
-    this._setPriceInpitChangeHandler();
+    this._setInnerHandlers();
   }
 
   getTemplate() {
     return createPointFullElement(this._point, this._destinations, this._offers, this._state, this._isNewEvent);
+  }
+
+  // слушатели
+  setSubmitButtonClickHandler(callback) {
+    this._callback.submitButtonClick = callback;
+    this.getElement().querySelector('form.event')
+      .addEventListener('submit', this._submitButtonClickHandler);
+  }
+
+  setResetButtonClickHandler(callback) {
+    this._callback.resetButtonClick = callback;
+    this.getElement().querySelector('.event__reset-btn')
+      .addEventListener('click', this._resetButtonClickHandler);
+  }
+
+  _setInnerHandlers() {
+    const offersContainer = this.getElement().querySelector('.event__available-offers');
+    this.getElement().querySelector('.event__type-list').addEventListener('click', this._eventTypeClickHandler);
+    this.getElement().querySelector('.event__input').addEventListener('change', this._destinationChangeHandler);
+    this.getElement().querySelector('.event__input--price').addEventListener('change', this._priceInpitChangeHandler);
+    if (offersContainer) {
+      offersContainer.addEventListener('change', this._offersListClickHandler);
+    }
+  }
+
+  // инициируем календарь
+  _setDatePickers() {
+    const containers = this.getElement().querySelectorAll('.event__input--time');
+    const dateFrom = this._state.dateFrom || this._point.dateFrom || new Date();
+    const dateTo = this._state.dateTo || this._point.dateTo || new Date();
+    let validDateTo = null;
+    if (isDateInRange(dateTo, dateFrom)) {
+      validDateTo = dateTo;
+    } else {
+      validDateTo = dateFrom;
+      this.updateState({dateTo: validDateTo}, {justUpdate: true});
+    }
+
+    if (this._datepickers.length) {
+      this.removeDatePickers();
+    }
+    this._datepickers.push(createDatePicker(containers[0], dateFrom, this._dateInputChangeHandler));
+    this._datepickers.push(createDatePicker(containers[DATE_PICKER_DATE_TO], validDateTo, this._dateInputChangeHandler, dateFrom));
   }
 
   restoreHandlers() {
@@ -191,10 +231,14 @@ export default class PointFull extends AbstractSmartView {
     this.setResetButtonClickHandler(this._callback.resetButtonClick);
 
     this._setDatePickers();
-    this._setDestinationChangeHandler();
-    this._setEventTypeClickHandler();
-    this._setOffersListClickHandler();
-    this._setPriceInpitChangeHandler();
+    this._setInnerHandlers();
+  }
+
+  removeHandlers() {
+    this.removeDatePickers();
+    this.getElement().querySelector('form.event').removeEventListener('submit', this._submitButtonClickHandler);
+    this.getElement().querySelector('.event__reset-btn').removeEventListener('click', this._resetButtonClickHandler);
+    this._removeInnerHandlers();
   }
 
   removeDatePickers() {
@@ -202,6 +246,16 @@ export default class PointFull extends AbstractSmartView {
       datepicker.destroy();
     });
     this._datepickers = [];
+  }
+
+  _removeInnerHandlers() {
+    const offersContainer = this.getElement().querySelector('.event__available-offers');
+    this.getElement().querySelector('.event__type-list').removeEventListener('click', this._eventTypeClickHandler);
+    this.getElement().querySelector('.event__input').addEventListener('change', this._destinationChangeHandler);
+    this.getElement().querySelector('.event__input--price').addEventListener('change', this._priceInpitChangeHandler);
+    if (offersContainer) {
+      offersContainer.addEventListener('change', this._offersListClickHandler);
+    }
   }
 
   _adaptStateToData() {
@@ -230,73 +284,18 @@ export default class PointFull extends AbstractSmartView {
       };
   }
 
-  // слушатели
-  setSubmitButtonClickHandler(callback) {
-    this._callback.submitButtonClick = callback;
-    this.getElement().querySelector('form.event')
-      .addEventListener('submit', this._submitButtonClickHandler);
-  }
-
-  setResetButtonClickHandler(callback) {
-    this._callback.resetButtonClick = callback;
-    this.getElement().querySelector('.event__reset-btn')
-      .addEventListener('click', this._resetButtonClickHandler);
-  }
-
-  _setEventTypeClickHandler() {
-    this.getElement().querySelector('.event__type-list')
-      .addEventListener('click', this._eventTypeClickHandler);
-  }
-
-  _setDestinationChangeHandler() {
-    this.getElement().querySelector('.event__input')
-      .addEventListener('change', this._destinationChangeHandler);
-  }
-
-  _setOffersListClickHandler() {
-    const offersContainer = this.getElement().querySelector('.event__available-offers');
-    if (offersContainer) {
-      offersContainer.addEventListener('change', this._offersListClickHandler);
-    }
-  }
-
-  _setPriceInpitChangeHandler() {
-    this.getElement().querySelector('.event__input--price')
-      .addEventListener('change', this._priceInpitChangeHandler);
-  }
-
-  // инициируем календарь
-  _setDatePickers() {
-    const containers = this.getElement().querySelectorAll('.event__input--time');
-    const dateFrom = this._state.dateFrom || this._point.dateFrom || new Date();
-    const dateTo = this._state.dateTo || this._point.dateTo || new Date();
-    let validDateTo = null;
-    if (isDateInRange(dateTo, dateFrom)) {
-      validDateTo = dateTo;
-    } else {
-      validDateTo = dateFrom;
-      this.updateState({dateTo: validDateTo}, true);
-    }
-
-    if (this._datepickers.length) {
-      this.removeDatePickers();
-    }
-    this._datepickers.push(createDatePicker(containers[0], dateFrom, this._dateInputChangeHandler));
-    this._datepickers.push(createDatePicker(containers[DATE_PICKER_DATE_TO], validDateTo, this._dateInputChangeHandler, dateFrom));
-  }
-
   // обработчики
   _submitButtonClickHandler(evt) {
     evt.preventDefault();
     const actionType = this._isNewEvent ? ActionType.ADD : ActionType.UPDATE;
-    this._callback.submitButtonClick(actionType, UpdateType.MINOR, this._adaptStateToData());
+    this._callback.submitButtonClick(actionType, UpdateType.MINOR, this._adaptStateToData(), TargetClass.SUBMIT);
   }
 
   _resetButtonClickHandler(evt) {
     evt.preventDefault();
     const actionType = this._isNewEvent ? ActionType.CANCEL : ActionType.DELETE;
     const pointID = this._isNewEvent ? null : this._point.id;
-    this._callback.resetButtonClick(actionType, UpdateType.MINOR, pointID);
+    this._callback.resetButtonClick(actionType, UpdateType.MINOR, pointID, TargetClass.DELETE);
   }
 
   _eventTypeClickHandler(evt) {
@@ -335,27 +334,27 @@ export default class PointFull extends AbstractSmartView {
       const offerPrice = Number(element.parentElement.querySelector('.event__offer-price').innerText);
       checkedOffers.push({title: offerText, price: offerPrice});
     });
-    this.updateState({offers: checkedOffers}, true);
+    this.updateState({offers: checkedOffers}, {justUpdate: true});
   }
 
   _priceInpitChangeHandler(evt) {
     evt.preventDefault();
-    this.updateState({basePrice: evt.target.value}, true);
+    this.updateState({basePrice: evt.target.value}, {justUpdate: true});
   }
 
   _dateInputChangeHandler(selectedDate, _dateStr, instance) {
     const inputID = instance.input.id;
     switch (inputID) {
       case 'event-start-time-1':
-        this.updateState({dateFrom: selectedDate[0]}, true);
+        this.updateState({dateFrom: selectedDate[0]}, {justUpdate: true});
         this._datepickers[DATE_PICKER_DATE_TO].set('minDate', selectedDate[0]);
-        if (selectedDate[0] > (this._state.dateTo || this._point.dateTo) || new Date()) {
+        if (selectedDate[0] > (this._state.dateTo || this._point.dateTo || new Date())) {
           this._datepickers[DATE_PICKER_DATE_TO].setDate(selectedDate[0]);
-          this.updateState({dateTo: selectedDate[0]}, true);
+          this.updateState({dateTo: selectedDate[0]}, {justUpdate: true});
         }
         break;
       case 'event-end-time-1':
-        this.updateState({dateTo: selectedDate[0]}, true);
+        this.updateState({dateTo: selectedDate[0]}, {justUpdate: true});
     }
   }
 }
