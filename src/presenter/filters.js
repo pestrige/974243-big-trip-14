@@ -3,7 +3,7 @@ import { getFilteredPointsCounts } from '../utils/dates.js';
 import { render, replace, remove } from '../utils/render.js';
 import { UpdateType } from '../const.js';
 
-export default class MenuPresenter {
+export default class Filters {
   constructor(container, filtersModel, pointsModel) {
     this._container = container;
     this._filtersModel = filtersModel;

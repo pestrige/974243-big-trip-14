@@ -24,7 +24,7 @@ const createPointFullElement = (point, allDestinations, allOffers, state, isNewE
       ? allOffers.find((offer) => state.offerType === offer.type).offers
       : allOffers.find((offer) => type === offer.type).offers;
 
-    if (eventOffers.length === 0) {
+    if (!eventOffers.length) {
       return '';
     }
 

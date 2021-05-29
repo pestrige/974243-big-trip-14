@@ -1,10 +1,10 @@
 import AbstractView from './abstract.js';
 
 const FILTER_CLASS = 'trip-filters__filter-input';
+const FILTER_NAME_NUMBER = 0;
+const FILTER_COUNT_NUMBER = 1;
 
 const createFiltersElement = (filtersCount, activeFilter, isDisabled) => {
-  const FILTER_NAME_NUMBER = 0;
-  const FILTER_COUNT_NUMBER = 1;
   const setDisabled = (item) => {
     if (isDisabled) {
       return 'disabled';

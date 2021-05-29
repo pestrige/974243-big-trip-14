@@ -7,15 +7,15 @@ import LoadingView from '../view/loading.js';
 import NoPointsView from '../view/no-points.js';
 import SortView from '../view/sort.js';
 import NewPointButtonView from '../view/new-point-button.js';
-import EventsContainerView from '../view/eventsContainer.js';
-import PointsContainerView from '../view/pointsContainer.js';
+import EventsContainerView from '../view/events-container.js';
+import PointsContainerView from '../view/points-container.js';
 import StatsView from '../view/stats.js';
 import { render, remove } from '../utils/render.js';
 import { sortByPrice } from '../utils/common.js';
 import { sortByDate, sortByTime, filter } from '../utils/dates.js';
 import { UpdateType, SortType, ActionType, MenuType, PointState } from '../const';
 
-export default class BoardPresenter {
+export default class Board {
   constructor(
     bodyContainer,
     headerContainer,
@@ -109,12 +109,12 @@ export default class BoardPresenter {
       this._renderStats();
       return;
     }
-    this._rendeEventsContainer();
+    this._renderEventsContainer();
     if (this._isLoading) {
       render(this._eventsContainer, this._loadingComponent);
       return;
     }
-    if (points.length === 0) {
+    if (!points.length) {
       render(this._eventsContainer, this._noPointsComponent);
       return;
     }
@@ -146,7 +146,7 @@ export default class BoardPresenter {
     this._newPointButtonComponent.setClickHandler(this._handleNewPointButtonClick);
   }
 
-  _rendeEventsContainer() {
+  _renderEventsContainer() {
     render(this._bodyContainer, this._eventsContainerComponent);
     this._eventsContainer = this._eventsContainerComponent.getElement();
   }
@@ -330,7 +330,7 @@ export default class BoardPresenter {
     if (this._pointFullPresenter) {
       this._clearPointFullPresenter();
     }
-    if (this._getPoints().length === 0) {
+    if (!this._getPoints().length) {
       remove(this._noPointsComponent);
       this._renderSort();
       this._renderPointsContainer();

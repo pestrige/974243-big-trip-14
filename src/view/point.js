@@ -26,7 +26,7 @@ const createPointElement = (point) => {
   const isFavoriteClass = () => isFavorite ? ACTIVE_BUTTON_CLASS : '';
 
   const renderOffers = () => {
-    if (offers.length === 0) {
+    if (!offers.length) {
       return '';
     }
 

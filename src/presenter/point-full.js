@@ -2,7 +2,7 @@ import PointFullView from '../view/point-full.js';
 import { remove, render, replace, renderTooltip } from '../utils/render.js';
 import { ActionType, RenderPosition, PointState } from '../const.js';
 
-export default class PointFullPresenter {
+export default class PointFull {
   constructor(containerComponent, destinationsModel, offersModel, isNewEvent, handleViewAction, connectionObserver) {
     this._container = containerComponent.getElement();
     this._destinationsModel = destinationsModel;

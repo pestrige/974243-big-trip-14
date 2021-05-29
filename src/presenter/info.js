@@ -2,7 +2,7 @@ import InfoView from '../view/info.js';
 import { render, remove } from '../utils/render.js';
 import { RenderPosition } from '../const';
 
-export default class InfoPresenter {
+export default class Info {
   constructor(container, points) {
     this._container = container;
     this._points = points;

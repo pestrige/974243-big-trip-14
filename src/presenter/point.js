@@ -2,7 +2,7 @@ import PointView from '../view/point.js';
 import { render, remove, replace } from '../utils/render.js';
 import { UpdateType, ActionType } from '../const.js';
 
-export default class PointPresenter {
+export default class Point {
   constructor(container, handleViewAction) {
     this._container = container;
     this._component = null;

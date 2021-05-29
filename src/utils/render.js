@@ -1,6 +1,9 @@
 import AbstractView from '../view/abstract.js';
 import { RenderPosition } from '../const.js';
 
+const TOOLTIP_HIDE_DELAY = 3000;
+const TOP_SPACING = 15;
+
 // создание DOM элемента
 export const createDomElement = (template) => {
   const templateContainer = document.createElement('template');
@@ -57,7 +60,6 @@ export const replace = (oldChild, newChild) => {
 };
 
 export const renderTooltip = (target, text) => {
-  const TOP_SPACING = 15;
   const tooltipElem = document.createElement('div');
   tooltipElem.className = 'tooltip';
   tooltipElem.innerText = text;
@@ -78,6 +80,6 @@ export const renderTooltip = (target, text) => {
 
   setTimeout(() => {
     tooltipElem.remove();
-  }, 3000);
+  }, TOOLTIP_HIDE_DELAY);
 };
 
